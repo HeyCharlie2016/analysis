@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <meta charset="UTF-8">
+    <!-- <link rel="stylesheet" href="style.css" type="text/css"> -->
+
+    <style>
+    /*<using an internal style sheet because the Flask library
+    is needed to connect to an external style sheet but has issues
+    with external dependencies */
+	    
+	    h2 {
+	    	margin-bottom: 5px;
+	    	margin-top: 10px;
+	    }
+
+	    p {
+	    	margin: 0px;
+	    }
+	    /* Create two equal columns that floats next to each other */
+		.column {
+		    box-sizing: border-box;
+		    float: left;
+		    height: 100%;
+		    padding: 5px;
+		    /*margin: 10px;*/
+		    /*border: solid grey;*/
+		    /*border-width:thin;*/
+		}
+
+		.row {
+			box-sizing: border-box;
+			width: 100%;
+			align-content: center;
+		}
+		/* Clear floats after the columns */
+		.row:after {
+		    /*display: table;*/
+		    clear: both;
+		    overflow: hidden;
+		}
+
+		table {
+			width: 100%;
+			max-height: 100%
+			border: 1px solid black;
+			table-layout: fixed;
+			overflow: hidden;
+			background-color:#fff;
+		}
+
+		td {
+			border: 1px solid black;
+			padding: 2px;
+			overflow: hidden;
+		}
+
+		.shortcell {
+			max-height:0.17in;
+			overflow:hidden;
+		}
+
+		th {
+			font-weight: bold;
+			border: 1px solid black;
+			padding: 2px;
+			text-align: left;
+			width:75%
+		}
+
+		div {
+			float: left;
+		}
+
+		.container {
+			box-sizing: border-box;
+			border:solid blue;
+			border-width: thin;
+			padding: 10px;
+			background-color: white;
+		}
+
+		img {
+		    box-sizing: content-box;
+		    width: 100%;
+		    height: 100%;
+		    object-fit: contain;
+		}
+
+		hr{
+			display: block;
+			color: #333;
+		    background-color: #333;
+		    height: .5px;
+		    margin-top: 2em;
+		    margin-bottom: 1em;
+		    border: 0.5px solid #333;
+		}
+
+		.notes {
+			/*display: block;
+		    margin-top: 0.5em;
+		    margin-bottom: 0.5em;
+		    margin-left: auto;
+		    margin-right: auto;
+		    border: 1px solid rgba(255, 0, 0, .2);*/
+			/*background-color: #fff; 
+			background-image: 
+				linear-gradient(90deg, transparent 49px, #88a4a9 49px,
+					#88a4a9 51px, transparent 51px), 
+				linear-gradient(#8e8e8e .1em, transparent .1em);
+			
+			background-size: 100% 1.2em;*/
+		}
+		/*td {
+			overflow:hidden;
+			white-space:nowrap;
+		}*/
+    </style>
+
+    <title>{{ title }}</title>
+</head>
+
+<body style="height:8.5in;width:11in;border:solid blue;border-width:thin;
+	background-color: #eee;
+font-family:Arial;">
+    
+    <div class="row" style="height:15%;">
+    	<div class="column" style="width:30%;">
+		    <h2 style="color:blue;font-family:Arial;font-weight:normal;
+		    	font-size:40px;">Hey<span style="font-family:Times New Roman;
+		    	font-size:50px;font-weight:bold;">, </span><strong>Charlie
+		    	</strong></h2>
+		    <p style="font-size:20px;">Communication report</p>
+	  	</div>
+	  	<div class="column" style="width:50%;">
+		    <div class="container" style="margin-top: .3in;" >
+		    	<div > 
+		    		<table style="font-size: 15px;">
+					 	<tr style="height:30%;">
+						    <th style="width:25%;">User Name</th>
+						    <td>{{ user_name }}</td> 
+						    <th style="width:25%;">Date of Report</th>
+						    <td>{{ report_date }}</td> 
+					  	</tr>
+					  	<tr style="height:30%">
+						    <th colspan="2">Treating Location</th>
+						    <td colspan="2">{{ clinic_ID }}</td> 
+					  	</tr>
+				  	</table>
+			  	<!-- <p style="font-size: 15px; margin-top: .05in;
+			  		font-weight:bold;">Data Shown from {{ earliest_data }}
+			  		to {{ latest_data }}.</p> -->
+			  	</div>
+		    </div>	
+	  	</div>
+    	<div class="column" style="width:20%;">
+		    <div style="float:right;max-width:1.2in;max-height:1.2in;">
+		    	{{ comma }}</div>
+	  	</div>
+	</div>
+    
+    <div class="row" style="height:40%;overflow:hidden;">
+  		<div class="column" style="width:60%;">
+		    <h2>Past Week Summary</h2>
+		    <div class="container">
+			    <div style="width:50%;height: 2.4in;">
+			    	<p>Share of Communication Volume</p>
+			    	<div style="height: 1.9in;">{{ comm_pie_chart }}</div>
+			    	<p style="font-size:12px; text-align: center;">
+			    		Week of {{ report_week }}</p>
+			    </div>
+			    <div style="width:50%;height: 2.4in;">
+			    	<p>Change From Last Week</p>
+			    	<div style="margin: .1in; margin-top: .25in;">
+				    	<table style="height:100%; font-size: 13px;">
+						 	<tr style="min-height:20%;">
+							    <th style="padding-top: 8px;">Week Of</th>
+							    <td style="padding-top: 8px;">{{ report_week }}</td> 
+						  	</tr>
+						  	<tr style="height:20%;">
+							    <th style="padding-top: 8px;">% Change in Risky Interactions</th>
+							    <td style="padding-top: 8px;">{{ change_in_risky_comm }}</td> 
+						  	</tr>
+						  	<tr style="height:20%;">
+							    <th style="padding-top: 8px;">Change in Days with Risky Interactions</th>
+							    <td style="padding-top: 8px;">{{ change_in_risky_comm_days }}</td> 
+						  	</tr>
+						  	<tr style="height:20%;">
+							    <th style="padding-top: 8px;">Change in Days with Risky Location Visits</th>
+							    <td style="padding-top: 8px;">{{ change_in_risky_loc_days }}</td> 
+						  	</tr>
+						</table>
+					</div>
+			    </div>
+		    </div>
+	  	</div>
+  		<div class="column" style="width:40%;">
+		    <h2>Location</h2>
+		    <div class="container">
+		    	<div style="height: 2.4in;">
+			    	<p>Days Visiting Risky Locations</p>
+			    	<div style="height: 1.8in;">{{ days_w_risky_loc_chart }}</div>
+			    	<table style="font-size: 12px;">
+					 	<tr>
+						    <th style="width:70%;">Days with most Risky Locations</th>
+						    <td style="text-align:center;">{{ day_with_max_risky_loc }}
+						    </td> 
+					  	</tr>
+					  	<tr>
+						    <th style="width:70%;">Known Risky Locations</th>
+						    <td style="text-align:center;">{{ known_risky_loc }}</td> 
+					  	</tr>
+				  	</table>
+			  	</div>
+		  	</div>
+		</div>
+	</div>
+	<div class="row" style="height:45%;">
+  		<div class="column" style="width:60%;">
+		    <h2>Communication</h2>
+		    <div class="container" style="height:2.95in;">
+			    <div style="width:48%;">
+			    	<p>Communication Volume</p>
+			    	<div style="height: 2.1in;">{{ weekly_comm_chart }}</div>
+			    	<table style="font-size: 12px;">
+					 	<tr style="height:20%;">
+						    <th style="width:70%;">Avg Weekly Total interactions</th>
+						    <td style="text-align:center;">{{ avg_weekly_total_comm }}
+						    </td> 
+					  	</tr>
+					  	<tr style="height:20%;">
+						    <th style="width:70%;">Avg Weekly Risky Interactions</th>
+						    <td style="text-align:center;">{{ avg_weekly_risky_comm }}
+						    </td> 
+					  	</tr>
+				  	</table>
+			    </div>
+			    <div style="width:48%;height:2.9in;float:right">    	
+			    	<p>Days with Communication</p>
+			    	<div style="height:2.1in;">{{ days_w_comm_chart }}</div>
+			    	<table style="font-size: 12px;">
+					 	<tr style="height:20%;">
+						    <th style="width:70%;">Day with most total interactions</th>
+						    <td style="text-align:center;">{{ day_with_max_total_comm }}
+						    </td> 
+					  	</tr>
+					  	<tr style="height:20%;">
+						    <th style="width:70%;">Day with most risky interactions</th>
+						    <td style="text-align:center;">{{ day_with_max_risky_comm }}
+						    </td> 
+					  	</tr>
+				  	</table>
+			    </div>
+		    </div>
+	  	</div>
+	  	<div class="column" style="width:40%;">
+		    <h2>Notes / Observations</h2>
+		    <div class="container" style="min-height:2in; width:100%;">    	
+		    	<!-- <div class="notes" style="min-height:2.3in;width:100%;"> -->
+	    		<hr>
+	    		<hr>
+	    		<hr>
+	    		<hr>
+	    		<hr>
+	    		<hr>
+		    	<!-- </div> -->
+		    </div>
+		    <p style="font-size: 10px;padding:5px;">
+		    	Hey,Charlie does not make any medical claims based on these data. Social interactions consist of text messages and phone calls, these are passively monitored on the users mobile devices. Contacts are rated through a questionnaire presented either during the onboarding process or later. Weekly averages are adjusted to account for weeks with partial data.
+		    </p>
+	  	</div>
+	</div>
+
+</body>
+</html>
