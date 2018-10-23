@@ -9,22 +9,9 @@ def mongo_connect():
 	return client.heycharlie
 
 
-def get_desired_usernames(users_df):
-	# recent_users = raw_users_df[['timeCreated','_id','username']].sort_values('timeCreated', ascending = False)
-	# recent_users.username.str.encode('utf-8')
+def get_all_usernames(users_df):
+	return users_df['username']
 
-	# desired_users = []
-	# for e in recent_users['username']:
-	# 	desired_users.append(e.encode("utf-8"))
-	# # desired_users['username'] = desired_users['username'].encode("utf-8")
-	# return desired_users[:10]
-	# return recent_users['username'].head(10)
-
-	return ['liamkl', 'vinoct8', 'vinoct2', 'emily2', 'zombeck']
-	# return users_df['username'] #this pulls all usernames
-# TODO: make a csv - read function for desired usernames
-
-# TODO: function (new file) that checks when the file was last saved and skip it somehow
 
 def get_user_ids(users_df, usernames):
 	user_ids = []
@@ -33,10 +20,20 @@ def get_user_ids(users_df, usernames):
 	return user_ids
 
 
-def make_raw_users_df(db, data_file_path):
+def make_raw_users_df(db, data_file_path, usernames):
 	# For now, pulling all usernames, filesize is small
-	users_df = pd.DataFrame(list(db.users.find()))
+	# users_df = pd.DataFrame(list(db.users.find()))
+	users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
 	users_df['_id'] = users_df['_id'].astype('|S')
+	users_df.to_pickle(data_file_path)
+	return users_df
+
+
+def update_raw_users_df(db, data_file_path, usernames):
+	users_df = pd.read_pickle(data_file_path)
+	new_users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
+	new_users_df['_id'] = new_users_df['_id'].astype('|S')
+	users_df = users_df.append(new_users_df, ignore_index=True)
 	users_df.to_pickle(data_file_path)
 	return users_df
 
@@ -78,16 +75,21 @@ def make_raw_location_log_df(db, raw_data_path, user_ids):
 		user_location_log_df.to_pickle(data_file_path)
 
 
-def pull_raw_data(raw_data_path):
+def pull_raw_data(usernames, raw_data_path):
 	db = mongo_connect()
-	users_df = make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'))
+	try:
+		# print('updating')
+		users_df = update_raw_users_df(db, os.path.join(raw_data_path,'users_df.pkl'), usernames)
+		print('flag')
+		print(users_df['username'])
+	except:
+		print('replacing users_df')
+		users_df = make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
+
 	# This is where the usernames are established
-	usernames = get_desired_usernames(users_df)
 	user_ids = get_user_ids(users_df, usernames)
 
 	make_raw_contacts_df(db, raw_data_path, user_ids)
 	make_raw_comm_log_df(db, raw_data_path, user_ids)
 	make_raw_location_df(db, raw_data_path, user_ids)
 	make_raw_location_log_df(db, raw_data_path, user_ids)
-
-	return usernames

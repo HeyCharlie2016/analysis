@@ -23,19 +23,26 @@ def generate_risk_thresholds(col):
 	return d[col]
 
 def user_df_setup(usernames, raw_data_path, interim_data_path):
+	try:
+		users_df = pd.read_pickle(interim_data_path)
+	except:
+		print('Interim users_df not found, generating new')
+		users_df = pd.DataFrame(np.nan, index=usernames, columns=['date_created'])
 
 	raw_users_df = pd.read_pickle(raw_data_path)
-	users = pd.DataFrame(np.nan, index=usernames, columns=['date_created'])
-
+	# new_users_df = pd.DataFrame(np.nan, index=usernames, columns=['date_created'])
+	refresh_time = dt.date.today()
 	for e in usernames:
-		users.loc[e, 'userId'] = raw_users_df.loc[raw_users_df['username'] == e]._id.values[0].decode()
+		users_df.loc[e, 'userId'] = raw_users_df.loc[raw_users_df['username'] == e]._id.values[0].decode()
 		dt64 = raw_users_df.loc[raw_users_df['username'] == e]['timeCreated'].values[0]
 		date_time = dt.datetime.utcfromtimestamp(dt64.astype('O') / 1e9)
-		users.loc[e, 'date_created'] = date_time.date()
-
+		users_df.loc[e, 'date_created'] = date_time.date()
+		users_df.loc[e, 'refresh_time'] = refresh_time
 		for i in ['unrated', 'risky', 'supportive']:
 			col = i + '_threshold'
-			users.loc[e, col] = generate_risk_thresholds(i)
+			users_df.loc[e, col] = generate_risk_thresholds(i)
 
-	users.to_pickle(interim_data_path)
-	return users
+	# users_df = users_df.append(new_users_df, ignore_index=True)
+	users_df.to_pickle(interim_data_path)
+	print(users_df.index)
+	return users_df
