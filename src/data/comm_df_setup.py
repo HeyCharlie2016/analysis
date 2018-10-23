@@ -37,54 +37,44 @@ def comm_activity_columns():
     return activity_columns
 
 
-def sort_daily_comm(users_df, comm_df, data_file_path):
-    users = users_df
-    # print (users)
-    # print(users_df.index)
-    # print(users_df.columns)
-    daily_comm_df = pd.DataFrame(np.nan, index=users.index, columns=['total_comm'])
-    for e in users.index:
-        # print(users[e])
-        activity_columns = comm_activity_columns()
-        today = dt.date.today()
-        date_indices = pd.date_range(users.loc[e, 'date_created'], today, freq='D')
-        activity_df = pd.DataFrame(np.nan, index=date_indices, columns=activity_columns)
+def sort_daily_comm(username, users_df, comm_df, interim_data_path):
+    today = dt.date.today()
+    date_indices = pd.date_range(users_df.loc[username, 'date_created'], today, freq='D')
 
-        thresholds = {}
-        for i in ['unrated', 'risky', 'supportive']:
-            thresholds[i] = users.loc[e, i + '_threshold']
+    activity_columns = comm_activity_columns()
+    comm_activity_df = pd.DataFrame(np.nan, index=date_indices, columns=activity_columns)
 
-        # unrated_threshold = users[e]['risk_thresholds']['unrated'].values[0]
-        # risky_threshold = users[e]['risk_thresholds']['risky'].values[0]
-        # supportive_threshold = users[e]['risk_thresholds']['supportive'].values[0]
-        
-        for i in ['sms_sent', 'sms_received', 'phone_inbound', 'phone_outbound']:
-            for j in ['risky', 'neutral', 'supportive', 'unrated']:
-                if j == 'risky':
-                    data = users.loc[e, 'comm_activity'].loc[(users[e]['comm_activity']['risk_score'] <= thresholds['risky'])
-                                                         & (users[e]['comm_activity']['risk_score'] > thresholds['unrated'])
-                                                         & (users[e]['comm_activity']['direction'] == i)]
-                elif j == 'neutral':
-                    data = users.loc[e, 'comm_activity'].loc[(users[e]['comm_activity']['risk_score'] < thresholds['supportive'])
-                                                         & (users[e]['comm_activity']['risk_score'] > thresholds['risky'])
-                                                         & (users[e]['comm_activity']['direction'] == i)]
-                elif j == 'supportive':
-                    data = users.loc[e, 'comm_activity'].loc[(users[e]['comm_activity']['risk_score'] >= thresholds['supportive'])
-                                                         & (users[e]['comm_activity']['direction'] == i)]
-                elif j == 'unrated':
-                    data = users.loc[e, 'comm_activity'].loc[(users[e]['comm_activity']['risk_score'] < thresholds['unrated'])
-                                                         & (users[e]['comm_activity']['direction'] == i)]
-                
-                col_name = i + '_' + j
-                temp = data.groupby(pd.cut(data.index, activity_df.index, right=False)).agg({'contactId': pd.Series.count})
-                temp.columns = [col_name]
-                temp = temp.reset_index()
-                temp.index = temp['index'].apply(lambda x: x.left)
+    thresholds = {}
+    for i in ['unrated', 'risky', 'supportive']:
+        thresholds[i] = users_df.loc[username, i + '_threshold']
 
-                activity_df[col_name] = temp[col_name]
+    for i in ['sms_sent', 'sms_received', 'phone_inbound', 'phone_outbound']:
+        for j in ['risky', 'neutral', 'supportive', 'unrated']:
+            if j == 'risky':
+                data = comm_df.loc[(comm_df['risk_score'] <= thresholds['risky'])
+                                   & (comm_df['risk_score'] > thresholds['unrated'])
+                                   & (comm_df['direction'] == i)]
+            elif j == 'neutral':
+                data = comm_df.loc[(comm_df['risk_score'] < thresholds['supportive'])
+                                   & (comm_df['risk_score'] > thresholds['risky'])
+                                   & (comm_df['direction'] == i)]
+            elif j == 'supportive':
+                data = comm_df.loc[(comm_df['risk_score'] >= thresholds['supportive'])
+                                   & (comm_df['direction'] == i)]
+            elif j == 'unrated':
+                data = comm_df.loc[(comm_df['risk_score'] < thresholds['unrated'])
+                                   & (comm_df['direction'] == i)]
 
-        activity_df = activity_df.fillna(0)
-        activity_df['total_comm'] = activity_df.sum(axis=1)
+            col_name = i + '_' + j
+            temp = data.groupby(pd.cut(data.index, comm_activity_df.index, right=False)).agg({'contactId': pd.Series.count})
+            temp.columns = [col_name]
+            temp = temp.reset_index()
+            temp.index = temp['index'].apply(lambda x: x.left)
 
-        daily_comm_df[e] = activity_df
-        daily_comm_df.to_pickle(data_file_path)
+            comm_activity_df[col_name] = temp[col_name]
+
+    comm_activity_df = comm_activity_df.fillna(0)
+    comm_activity_df['total_comm'] = comm_activity_df.sum(axis=1)
+
+    interim_data_file_path = os.path.join(interim_data_path, 'daily_comm_log_df_' + username + '.pkl')
+    comm_activity_df.to_pickle(interim_data_file_path)
