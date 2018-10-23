@@ -18,7 +18,7 @@ if __name__ == '__main__':
                                  "data",
                                  "raw")
 
-    # This is where we'll insert a list of desired usernames
+    # TODO This is where we'll insert a list of desired usernames
     database_query.pull_raw_data(raw_data_path)
 
 
@@ -26,7 +26,7 @@ if __name__ == '__main__':
                                         "data",
                                         "interim")
 
-    # start a loop here for each entry on list of desired usernames, rather than having them lop in each file
+    # TODO start a loop here for each entry on list of desired usernames, rather than having them lop in each file
     users_df = user_df_setup.user_df_setup(os.path.join(raw_data_path, 'users_df.pkl'),
                                 os.path.join(interim_data_path, 'users_df.pkl'))
     contacts_df = contacts_df_setup.contacts_df_setup(users_df,
