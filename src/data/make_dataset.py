@@ -1,43 +1,9 @@
 import os
-import pandas as pd
-import datetime as dt
 
 import database_query
 import user_df_setup
 import contacts_df_setup
 import comm_df_setup
-
-
-def make_raw_users_df(db, data_file_path):  
-    users_df = pd.DataFrame(list(db.users.find()))
-    users_df['_id'] = users_df['_id'].astype('|S')
-    users_df.to_pickle(data_file_path)
-    return users_df
-
-
-def make_raw_contacts_df(db, data_file_path):   
-    contacts_df = pd.DataFrame(list(db.socialContact.find()))
-    contacts_df['_id'] = contacts_df['_id'].astype('|S')
-    contacts_df.index = contacts_df['_id']
-    contacts_df.to_pickle(data_file_path)
-
-
-def make_raw_comm_log_df(db, data_file_path):   
-    comm_log_df = pd.DataFrame(list(db.contactLog.find()))
-    comm_log_df.index = pd.to_datetime(comm_log_df['timestamp'], unit = "ms") - dt.timedelta(hours=4)
-    comm_log_df.to_pickle(data_file_path)
-
-
-def make_raw_location_df(db, data_file_path):   
-    location_df = pd.DataFrame(list(db.geographicLocation.find()))
-    location_df['_id'] = location_df['_id'].astype('|S')
-    location_df.to_pickle(data_file_path)
-
-
-def make_raw_location_log_df(db, data_file_path):   
-    location_log_df = pd.DataFrame(list(db.locationLog.find()))
-    location_log_df.index = location_log_df['_id']
-    location_log_df.to_pickle(data_file_path)
 
 
 if __name__ == '__main__':
@@ -52,20 +18,15 @@ if __name__ == '__main__':
                                  "data",
                                  "raw")
 
-    db = database_query.mongo_connect()
-    make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'))
-    make_raw_contacts_df(db, os.path.join(raw_data_path, 'contacts_df.pkl'))
-    make_raw_comm_log_df(db, os.path.join(raw_data_path, 'comm_log_df.pkl'))
-    make_raw_location_df(db, os.path.join(raw_data_path, 'location_df.pkl'))
-    make_raw_location_log_df(db, os.path.join(raw_data_path, 'location_log_df.pkl'))
+    # This is where we'll insert a list of desired usernames
+    database_query.pull_raw_data(raw_data_path)
 
-    data_path = os.path.join(PROJ_ROOT,
-                                "data")
 
     interim_data_path = os.path.join(PROJ_ROOT,
                                         "data",
                                         "interim")
 
+    # start a loop here for each entry on list of desired usernames, rather than having them lop in each file
     users_df = user_df_setup.user_df_setup(os.path.join(raw_data_path, 'users_df.pkl'),
                                 os.path.join(interim_data_path, 'users_df.pkl'))
     contacts_df = contacts_df_setup.contacts_df_setup(users_df,
