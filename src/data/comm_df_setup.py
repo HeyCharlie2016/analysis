@@ -1,25 +1,27 @@
 import pandas as pd
 import datetime as dt
 import numpy as np
+import os
 
 
-def create_interim_comm_data(contacts_df, raw_data_path, interim_data_path):
-    raw_comm_df = pd.read_pickle(raw_data_path)
+def create_interim_comm_data(username, users_df, contacts_df, raw_data_path, interim_data_path):
+    user_id = users_df.loc[username, 'userId']
+    raw_data_file_path = os.path.join(raw_data_path, 'comm_log_df_' + user_id + '.pkl')
+    raw_comm_df = pd.read_pickle(raw_data_file_path)
+    user_activity = raw_comm_df[raw_comm_df['userId'] == user_id]
 
-    for e in contacts_df.index:
-        user_activity = raw_comm_df[raw_comm_df['userId'] == contacts_df[e]['userId']]
-        risk_scores = pd.Series(np.empty(len(user_activity.index)), index=user_activity.index)
-        for index, row in user_activity.iterrows():
-            contact_id = row['contactId']
-            score = contacts_df[e]['contacts'].loc[contact_id]['score']
-            risk_scores[index] = score
-        user_activity = user_activity.assign(risk_score=risk_scores.values)
-        comm_df = user_activity[['contactId', 'direction', 'timestamp', 'risk_score']]
-        comm_df.index = pd.to_datetime(comm_df['timestamp'], unit="ms") - dt.timedelta(hours=4)
+    risk_scores = pd.Series(np.empty(len(user_activity.index)), index=user_activity.index)
+    for index, row in user_activity.iterrows():
+        contact_id = row['contactId']
+        risk_scores[index] = contacts_df.loc[contact_id]['score']
+    user_activity = user_activity.assign(risk_score=risk_scores.values)
+    comm_df = user_activity[['contactId', 'direction', 'timestamp', 'risk_score']]
+    comm_df.index = pd.to_datetime(comm_df['timestamp'], unit="ms") - dt.timedelta(hours=4)
 
-    comm_df.to_pickle(interim_data_path)
-
+    interim_data_file_path = os.path.join(interim_data_path, 'comm_log_df_' + username + '.pkl')
+    comm_df.to_pickle(interim_data_file_path)
     return comm_df
+
 
 def comm_activity_columns():
     activity_columns = []

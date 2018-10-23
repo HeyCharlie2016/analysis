@@ -22,14 +22,12 @@ def generate_risk_thresholds(col):
 						'supportive': 3}
 	return d[col]
 
-def user_df_setup(raw_data_path, interim_data_path):
+def user_df_setup(usernames, raw_data_path, interim_data_path):
 
 	raw_users_df = pd.read_pickle(raw_data_path)
+	users = pd.DataFrame(np.nan, index=usernames, columns=['date_created'])
 
-	# desired_usernames = get_desired_usernames(raw_users_df)
-	users = pd.DataFrame(np.nan, index=desired_usernames, columns=['date_created'])	
-
-	for e in desired_usernames:
+	for e in usernames:
 		users.loc[e, 'userId'] = raw_users_df.loc[raw_users_df['username'] == e]._id.values[0].decode()
 		dt64 = raw_users_df.loc[raw_users_df['username'] == e]['timeCreated'].values[0]
 		date_time = dt.datetime.utcfromtimestamp(dt64.astype('O') / 1e9)
@@ -40,5 +38,4 @@ def user_df_setup(raw_data_path, interim_data_path):
 			users.loc[e, col] = generate_risk_thresholds(i)
 
 	users.to_pickle(interim_data_path)
-
 	return users

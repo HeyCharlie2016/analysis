@@ -19,21 +19,17 @@ if __name__ == '__main__':
                                  "raw")
 
     # TODO This is where we'll insert a list of desired usernames
-    database_query.pull_raw_data(raw_data_path)
-
+    usernames = database_query.pull_raw_data(raw_data_path)
 
     interim_data_path = os.path.join(PROJ_ROOT,
-                                        "data",
-                                        "interim")
+                                     "data",
+                                     "interim")
 
-    # TODO start a loop here for each entry on list of desired usernames, rather than having them lop in each file
-    users_df = user_df_setup.user_df_setup(os.path.join(raw_data_path, 'users_df.pkl'),
-                                os.path.join(interim_data_path, 'users_df.pkl'))
-    contacts_df = contacts_df_setup.contacts_df_setup(users_df,
-                                os.path.join(raw_data_path, 'contacts_df.pkl'),
-                                os.path.join(interim_data_path, 'contacts_df.pkl'))
+    users_df = user_df_setup.user_df_setup(usernames,
+                                           os.path.join(raw_data_path, 'users_df.pkl'),
+                                           os.path.join(interim_data_path, 'users_df.pkl'))
+    for e in usernames:
+        contacts_df = contacts_df_setup.contacts_df_setup(e, users_df, raw_data_path, interim_data_path)
 
-    comm_df = comm_df_setup.create_interim_comm_data(contacts_df,
-                                                     os.path.join(raw_data_path, 'comm_log_df.pkl'),
-                                                     os.path.join(interim_data_path, 'Communication_df.pkl'))
-    comm_df_setup.sort_daily_comm(users_df, comm_df, os.path.join(interim_data_path, 'daily_comm_df.pkl'))
+        comm_df = comm_df_setup.create_interim_comm_data(e, users_df, contacts_df, raw_data_path, interim_data_path)
+        # comm_df_setup.sort_daily_comm(users_df, comm_df, os.path.join(interim_data_path, 'daily_comm_df.pkl'))
