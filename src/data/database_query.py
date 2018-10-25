@@ -94,10 +94,10 @@ def pull_raw_data(usernames, raw_data_path):
 	except:
 		print('Creating new users_df')
 		users_df = make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
-	print(users_df.head(10))
+	# print(users_df.head(10))
 	[user_ids, usernames] = get_user_ids(users_df, usernames)  # Maybe overly complex? Checks if each exists.
-	print(user_ids)
-	print(usernames)
+	# print(user_ids)
+	# print(usernames)
 	if len(usernames) > 0:
 		make_raw_contacts_df(db, raw_data_path, user_ids)
 		make_raw_comm_log_df(db, raw_data_path, user_ids)

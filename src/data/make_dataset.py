@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 import datetime as dt
 
 import database_query
@@ -27,7 +28,10 @@ def check_interim_data(usernames, max_report_date, interim_data_file_path, posit
     users_with_data = list(set(usernames) & set(users_df.index)) # Users that do exist (inverse of previous line)
 
     for e in users_with_data:
-        if users_df['refresh_time'][e] < max_report_date:
+        if pd.isnull(users_df['refresh_time'][e]):
+            users_needing_updating.append(e)
+            users_with_data.remove(e)
+        elif (users_df['refresh_time'][e] < max_report_date):
             users_needing_updating.append(e)
             users_with_data.remove(e)
     if positives == 1:
@@ -61,7 +65,6 @@ def refresh_user_data(usernames, PROJ_ROOT, max_report_date):
     else:
         print("updating data for:")
         print(usernames_to_update)
-        print(raw_data_path)
         updated_usernames = database_query.pull_raw_data(usernames_to_update, raw_data_path)
         if not updated_usernames:
             print('No data updated, check input usernames')
@@ -77,6 +80,9 @@ def refresh_user_data(usernames, PROJ_ROOT, max_report_date):
         comm_df_analyses.comm_df_setup(username, users_df, contacts_df, raw_data_path,
                                                          interim_data_path)
         # TODO Mirror functions for locations (TBD, testing architecture for downstream issues)
+
+    # Confirm update
+    users_df = user_df_setup.mark_refreshed(usernames, users_df, os.path.join(interim_data_path, 'users_df.pkl'))
     usernames = check_interim_data(usernames, max_report_date, os.path.join(interim_data_path, 'users_df.pkl'), 1)
     print('Dataset current for:')
     print(usernames)

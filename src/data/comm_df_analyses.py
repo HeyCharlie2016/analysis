@@ -18,7 +18,6 @@ def comm_activity_columns():
     return activity_columns
 
 
-
 def create_interim_comm_data(username, users_df, contacts_df, raw_data_path, interim_data_path):
     user_id = users_df.loc[username, 'userId']
     raw_data_file_path = os.path.join(raw_data_path, 'comm_log_df_' + user_id + '.pkl')
@@ -80,7 +79,6 @@ def add_weekly_highest_day(daily_comm_df, weekly_comm_df):
     weekday_dict = {0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri', 5: 'Sat', 6: 'Sun'}
     labels = ['risky_comm', 'total_comm']
     cols = ['high_risky_comm_day', 'high_total_comm_day']
-
     data = daily_comm_df[labels]
     # date_indicies = pd.date_range(start, end, freq='7D')
     date_indices = weekly_comm_df.index
@@ -105,15 +103,15 @@ def add_weekly_highest_day(daily_comm_df, weekly_comm_df):
                     activity_df.loc[j] = '- No Max -'
         weekly_comm_df['high_' + i + '_day'] = activity_df[i]
     return weekly_comm_df
-    # users['vinsep11']['weekly_activity'][['risky_comm', 'total_comm', 'high_risky_comm_day', 'high_total_comm_day']]
+
 
 def time_bucket_comm(username, users_df, comm_df, interim_data_path, period):
     today = dt.date.today()
     date_created = users_df.loc[username, 'date_created']
     if period == 'day':
-        date_indices = pd.date_range(date_created, today, freq='D')
+        date_indices = pd.date_range(date_created, today + dt.timedelta(7), freq='D')
     elif period == 'week':
-        date_indices = pd.date_range(date_created, today, freq='W-MON')
+        date_indices = pd.date_range(date_created, today + dt.timedelta(7), freq='W-MON')
     # TODO: Assertion or something since this is user input?
     activity_columns = comm_activity_columns()
     comm_activity_df = pd.DataFrame(np.nan, index=date_indices, columns=activity_columns)
@@ -140,11 +138,12 @@ def time_bucket_comm(username, users_df, comm_df, interim_data_path, period):
                                    & (comm_df['direction'] == i)]
 
             col_name = i + '_' + j
-            temp = data.groupby(pd.cut(data.index, comm_activity_df.index, right=False)).agg({'contactId': pd.Series.count})
-            temp.columns = [col_name]
-            temp = temp.reset_index()
-            temp.index = temp['index'].apply(lambda x: x.left)
-            comm_activity_df[col_name] = temp[col_name]
+            if len(data) > 0:  # not sure if this is necessary
+                temp = data.groupby(pd.cut(data.index, comm_activity_df.index, right=False)).agg({'contactId': pd.Series.count})
+                temp.columns = [col_name]
+                temp = temp.reset_index()
+                temp.index = temp['index'].apply(lambda x: x.left)
+                comm_activity_df[col_name] = temp[col_name]
     comm_activity_df = comm_activity_df.fillna(0)
     comm_activity_df['total_comm'] = comm_activity_df.sum(axis=1) # Needs to immediately follow
 
@@ -154,6 +153,7 @@ def time_bucket_comm(username, users_df, comm_df, interim_data_path, period):
     # TODO: reduce how often the datafile is being over written
     interim_data_file_path = os.path.join(interim_data_path, period + '_comm_log_df_' + username + '.pkl')
     comm_activity_df.to_pickle(interim_data_file_path)
+    return comm_activity_df
 
 
 def comm_df_setup(username, users_df, contacts_df, raw_data_path,
@@ -164,7 +164,7 @@ def comm_df_setup(username, users_df, contacts_df, raw_data_path,
     weekly_comm_df = time_bucket_comm(username, users_df, comm_df, interim_data_path, 'week')
 
     # These functions don't write to files
-    weekly_comm_df = add_weekly_highest_day(daily_comm_df, weekly_comm_df)
-    interim_data_file_path = os.path.join(interim_data_path,'week_comm_log_df_' + username + '.pkl')
-    weekly_comm_df.to_pickle(interim_data_file_path)
+    # weekly_comm_df = add_weekly_highest_day(daily_comm_df, weekly_comm_df)
+    # interim_data_file_path = os.path.join(interim_data_path,'week_comm_log_df_' + username + '.pkl')
+    # weekly_comm_df.to_pickle(interim_data_file_path)
     print(weekly_comm_df.columns)

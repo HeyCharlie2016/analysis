@@ -23,26 +23,35 @@ def generate_risk_thresholds(col):
 	return d[col]
 
 
-def user_df_setup(usernames, raw_data_path, interim_data_path):
+def user_df_setup(usernames, raw_data_path, interim_data_file_path):
 	try:
-		users_df = pd.read_pickle(interim_data_path)
+		users_df = pd.read_pickle(interim_data_file_path)
 	except:
 		print('Interim users_df not found, generating new')
-		users_df = pd.DataFrame(np.nan, index=usernames, columns=['date_created'])
-
+		users_df = pd.DataFrame(np.nan, index=usernames, columns=['date_created', 'refresh_time'])
 	raw_users_df = pd.read_pickle(raw_data_path)
-	refresh_time = dt.date.today()
+	# print(usernames)
+	# users_needing_entries = list(set(usernames) - set(users_df.index))  # Users that don't exist
+	# print(users_needing_entries)
 	for e in usernames:
 		# could skip some of this for the existing users and just update the refresh timestamp
 		users_df.loc[e, 'userId'] = raw_users_df.loc[raw_users_df['username'] == e]._id.values[0].decode()
 		dt64 = raw_users_df.loc[raw_users_df['username'] == e]['timeCreated'].values[0]
 		date_time = dt.datetime.utcfromtimestamp(dt64.astype('O') / 1e9)
 		users_df.loc[e, 'date_created'] = date_time.date()
-		users_df.loc[e, 'refresh_time'] = refresh_time
+		# users_df.loc[e, 'refresh_time'] = 0
 		for i in ['unrated', 'risky', 'supportive']:
 			col = i + '_threshold'
 			users_df.loc[e, col] = generate_risk_thresholds(i)
 
-	users_df.to_pickle(interim_data_path)
+	users_df.to_pickle(interim_data_file_path)
 	# print(users_df.index)
+	return users_df
+
+
+def mark_refreshed(usernames, users_df, interim_data_file_path):
+	refresh_time = dt.date.today()
+	for e in usernames:
+		users_df.loc[e, 'refresh_time'] = refresh_time
+	users_df.to_pickle(interim_data_file_path)
 	return users_df
