@@ -25,9 +25,9 @@ def get_user_ids(users_df, usernames):
 
 
 def make_raw_users_df(db, data_file_path, usernames):
-	# For now, pulling all usernames, filesize is small
-	# users_df = pd.DataFrame(list(db.users.find()))
-	users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
+	# Pulling the current username log, we shouldn't need to worry about filesize for this one but can change later
+	users_df = pd.DataFrame(list(db.users.find()))
+	# users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
 	users_df['_id'] = users_df['_id'].astype('|S')
 	users_df.to_pickle(data_file_path)
 	return users_df
@@ -35,9 +35,9 @@ def make_raw_users_df(db, data_file_path, usernames):
 
 def update_raw_users_df(db, data_file_path, usernames):
 	users_df = pd.read_pickle(data_file_path)
-	new_users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
-	new_users_df['_id'] = new_users_df['_id'].astype('|S')
-	users_df = users_df.combine_first(new_users_df)
+	current_users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
+	current_users_df['_id'] = current_users_df['_id'].astype('|S')
+	users_df = users_df.combine_first(current_users_df)  # The union of the two, without duplicates
 	users_df.to_pickle(data_file_path)
 	return users_df
 
@@ -82,13 +82,13 @@ def make_raw_location_log_df(db, raw_data_path, user_ids):
 def pull_raw_data(usernames, raw_data_path):
 	db = mongo_connect()
 	try:
-		# print('updating')
+		# Check for if the file exists
 		users_df = update_raw_users_df(db, os.path.join(raw_data_path,'users_df.pkl'), usernames)
 	except:
-		print('replacing users_df')
+		print('Creating new users_df')
 		users_df = make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
 
-	[user_ids, usernames] = get_user_ids(users_df, usernames)
+	[user_ids, usernames] = get_user_ids(users_df, usernames)  # Maybe overly complex? Checks if each exists.
 	print('updating raw users')
 	print(users_df['username'])
 	if len(usernames) > 0:
