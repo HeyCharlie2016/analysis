@@ -15,19 +15,21 @@ def get_all_usernames(users_df):
 
 def get_user_ids(users_df, usernames):
 	user_ids = []
+	# print(users_df['username'].values)
 	for e in usernames:
-		if e not in users_df['username']:
-			print('data not found for ' + e)
+		if e in users_df['username'].values:
+			user_ids.append(users_df[users_df['username'] == e]['_id'].values[0].decode())
+		else:
+			print('Username not found: ' + e)
 			usernames.remove(e)
-			continue
-		user_ids.append(users_df[users_df['username'] == e]['_id'].values[0].decode())
+
 	return user_ids, usernames
 
 
 def make_raw_users_df(db, data_file_path, usernames):
 	# Pulling the current username log, we shouldn't need to worry about filesize for this one but can change later
-	users_df = pd.DataFrame(list(db.users.find()))
-	# users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
+	# users_df = pd.DataFrame(list(db.users.find()))
+	users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
 	users_df['_id'] = users_df['_id'].astype('|S')
 	users_df.to_pickle(data_file_path)
 	return users_df
@@ -43,6 +45,11 @@ def update_raw_users_df(db, data_file_path, usernames):
 
 
 def make_raw_contacts_df(db, raw_data_path, user_ids):
+	try:
+		assert len(user_ids) > 0
+	except AssertionError:
+		print('Empty user_ids list')
+
 	contacts_df = pd.DataFrame(list(db.socialContact.find({'userId': {'$in': user_ids}})))
 	contacts_df['_id'] = contacts_df['_id'].astype('|S')
 	contacts_df.index = contacts_df['_id']
@@ -83,17 +90,19 @@ def pull_raw_data(usernames, raw_data_path):
 	db = mongo_connect()
 	try:
 		# Check for if the file exists
-		users_df = update_raw_users_df(db, os.path.join(raw_data_path,'users_df.pkl'), usernames)
+		users_df = update_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
 	except:
 		print('Creating new users_df')
 		users_df = make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
-
+	print(users_df.head(10))
 	[user_ids, usernames] = get_user_ids(users_df, usernames)  # Maybe overly complex? Checks if each exists.
-	print('updating raw users')
-	print(users_df['username'])
+	print(user_ids)
+	print(usernames)
 	if len(usernames) > 0:
 		make_raw_contacts_df(db, raw_data_path, user_ids)
 		make_raw_comm_log_df(db, raw_data_path, user_ids)
 		make_raw_location_df(db, raw_data_path, user_ids)
 		make_raw_location_log_df(db, raw_data_path, user_ids)
+		print('Updated raw data for users:')
+		print(usernames)
 	return usernames

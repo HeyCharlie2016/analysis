@@ -44,5 +44,5 @@ def user_df_setup(usernames, raw_data_path, interim_data_path):
 			users_df.loc[e, col] = generate_risk_thresholds(i)
 
 	users_df.to_pickle(interim_data_path)
-	print(users_df.index)
+	# print(users_df.index)
 	return users_df

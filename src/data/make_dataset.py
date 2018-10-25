@@ -5,20 +5,21 @@ import datetime as dt
 import database_query
 import user_df_setup
 import contacts_df_setup
-import comm_df_setup
+import comm_df_analyses
 
 
-def check_users(usernames, max_report_date, interim_data_file_path):
+def check_interim_data(usernames, max_report_date, interim_data_file_path, positives):
     # This is effectively checking if the data exists and is current.
     # Returns a list of usernames that need to be updated
     # Should probably add in checks for raw data files
 
     # Currently, the raw users_df.pkl is storing all the users in the db
-    #   the interim users_df.pkl has only data for those with updated interim data files
+    #   the interim users_df.pkl has only entries for those with updated interim data files
 
     try:
         # Checking that the file exists
         users_df = pd.read_pickle(interim_data_file_path)
+        print("Interim users_df datafile exists")
     except:
         return usernames
 
@@ -28,17 +29,21 @@ def check_users(usernames, max_report_date, interim_data_file_path):
     for e in users_with_data:
         if users_df['refresh_time'][e] < max_report_date:
             users_needing_updating.append(e)
-    return users_needing_updating
+            users_with_data.remove(e)
+    if positives == 1:
+        return users_with_data
+    else:
+        return users_needing_updating
 
 
-def refresh_user_data(usernames, max_report_date):
-
-    PROJ_ROOT = os.path.join(__file__,
-                             os.pardir,
-                             os.pardir,
-                             os.pardir)
-
-    PROJ_ROOT = os.path.abspath(PROJ_ROOT)
+def refresh_user_data(usernames, PROJ_ROOT, max_report_date):
+    #
+    # PROJ_ROOT = os.path.join(__file__,
+    #                          os.pardir,
+    #                          os.pardir,
+    #                          os.pardir)
+    #
+    # PROJ_ROOT = os.path.abspath(PROJ_ROOT)
     raw_data_path = os.path.join(PROJ_ROOT,
                                  "data",
                                  "raw")
@@ -46,28 +51,33 @@ def refresh_user_data(usernames, max_report_date):
                                      "data",
                                      "interim")
     # TODO retain some functionality for pulling all the dataset: force re-pull for the list, and force re-pull all
-    usernames = check_users(usernames, max_report_date, os.path.join(interim_data_path, 'users_df.pkl'))
-    if len(usernames) == 0:
+    usernames_to_update = check_interim_data(usernames,
+                                             max_report_date,
+                                             os.path.join(interim_data_path, 'users_df.pkl'),
+                                             0)
+    if len(usernames_to_update) == 0:
         print('Data is up to date!')
         return True
     else:
         print("updating data for:")
-        print(usernames)
-        updated_usernames = database_query.pull_raw_data(usernames, raw_data_path)
+        print(usernames_to_update)
+        print(raw_data_path)
+        updated_usernames = database_query.pull_raw_data(usernames_to_update, raw_data_path)
         if not updated_usernames:
             print('No data updated, check input usernames')
         else:
             print("Updated data for:")
             print(updated_usernames)
-        users_df = user_df_setup.user_df_setup(usernames,
+        users_df = user_df_setup.user_df_setup(usernames_to_update,
                                            os.path.join(raw_data_path, 'users_df.pkl'),
                                            os.path.join(interim_data_path, 'users_df.pkl'))
-    for username in usernames:
+    for username in usernames_to_update:
         contacts_df = contacts_df_setup.contacts_df_setup(username, users_df, raw_data_path, interim_data_path)
 
-        comm_df = comm_df_setup.create_interim_comm_data(username, users_df, contacts_df, raw_data_path,
+        comm_df_analyses.comm_df_setup(username, users_df, contacts_df, raw_data_path,
                                                          interim_data_path)
-        comm_df_setup.time_bucket_comm(username, users_df, comm_df, interim_data_path, 'day')
-        comm_df_setup.time_bucket_comm(username, users_df, comm_df, interim_data_path, 'week')
         # TODO Mirror functions for locations (TBD, testing architecture for downstream issues)
-    print('Data has been updated.')
+    usernames = check_interim_data(usernames, max_report_date, os.path.join(interim_data_path, 'users_df.pkl'), 1)
+    print('Dataset current for:')
+    print(usernames)
+    return usernames
