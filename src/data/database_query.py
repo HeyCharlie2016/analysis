@@ -16,8 +16,12 @@ def get_all_usernames(users_df):
 def get_user_ids(users_df, usernames):
 	user_ids = []
 	for e in usernames:
+		if e not in users_df['username']:
+			print('data not found for ' + e)
+			usernames.remove(e)
+			continue
 		user_ids.append(users_df[users_df['username'] == e]['_id'].values[0].decode())
-	return user_ids
+	return user_ids, usernames
 
 
 def make_raw_users_df(db, data_file_path, usernames):
@@ -33,7 +37,7 @@ def update_raw_users_df(db, data_file_path, usernames):
 	users_df = pd.read_pickle(data_file_path)
 	new_users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
 	new_users_df['_id'] = new_users_df['_id'].astype('|S')
-	users_df = users_df.append(new_users_df, ignore_index=True)
+	users_df = users_df.combine_first(new_users_df)
 	users_df.to_pickle(data_file_path)
 	return users_df
 
@@ -80,16 +84,16 @@ def pull_raw_data(usernames, raw_data_path):
 	try:
 		# print('updating')
 		users_df = update_raw_users_df(db, os.path.join(raw_data_path,'users_df.pkl'), usernames)
-		print('flag')
-		print(users_df['username'])
 	except:
 		print('replacing users_df')
 		users_df = make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
 
-	# This is where the usernames are established
-	user_ids = get_user_ids(users_df, usernames)
-
-	make_raw_contacts_df(db, raw_data_path, user_ids)
-	make_raw_comm_log_df(db, raw_data_path, user_ids)
-	make_raw_location_df(db, raw_data_path, user_ids)
-	make_raw_location_log_df(db, raw_data_path, user_ids)
+	[user_ids, usernames] = get_user_ids(users_df, usernames)
+	print('updating raw users')
+	print(users_df['username'])
+	if len(usernames) > 0:
+		make_raw_contacts_df(db, raw_data_path, user_ids)
+		make_raw_comm_log_df(db, raw_data_path, user_ids)
+		make_raw_location_df(db, raw_data_path, user_ids)
+		make_raw_location_log_df(db, raw_data_path, user_ids)
+	return usernames

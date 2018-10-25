@@ -22,6 +22,7 @@ def generate_risk_thresholds(col):
 						'supportive': 3}
 	return d[col]
 
+
 def user_df_setup(usernames, raw_data_path, interim_data_path):
 	try:
 		users_df = pd.read_pickle(interim_data_path)
@@ -30,9 +31,9 @@ def user_df_setup(usernames, raw_data_path, interim_data_path):
 		users_df = pd.DataFrame(np.nan, index=usernames, columns=['date_created'])
 
 	raw_users_df = pd.read_pickle(raw_data_path)
-	# new_users_df = pd.DataFrame(np.nan, index=usernames, columns=['date_created'])
 	refresh_time = dt.date.today()
 	for e in usernames:
+		# could skip some of this for the existing users and just update the refresh timestamp
 		users_df.loc[e, 'userId'] = raw_users_df.loc[raw_users_df['username'] == e]._id.values[0].decode()
 		dt64 = raw_users_df.loc[raw_users_df['username'] == e]['timeCreated'].values[0]
 		date_time = dt.datetime.utcfromtimestamp(dt64.astype('O') / 1e9)
@@ -42,7 +43,6 @@ def user_df_setup(usernames, raw_data_path, interim_data_path):
 			col = i + '_threshold'
 			users_df.loc[e, col] = generate_risk_thresholds(i)
 
-	# users_df = users_df.append(new_users_df, ignore_index=True)
 	users_df.to_pickle(interim_data_path)
 	print(users_df.index)
 	return users_df

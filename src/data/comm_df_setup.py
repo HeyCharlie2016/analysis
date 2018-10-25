@@ -4,6 +4,21 @@ import numpy as np
 import os
 
 
+def comm_activity_columns():
+    activity_columns = []
+    for i in ['sms_sent', 'sms_received', 'phone_inbound', 'phone_outbound']:
+        for j in ['risky', 'neutral', 'supportive', 'unrated']:
+            if i == 'locations':
+                if j == 'neutral' or j == 'unrated':
+                    pass
+                else:
+                    activity_columns.append(i + '_' + j)
+            else:
+                activity_columns.append(i + '_' + j)
+    return activity_columns
+
+
+
 def create_interim_comm_data(username, users_df, contacts_df, raw_data_path, interim_data_path):
     user_id = users_df.loc[username, 'userId']
     raw_data_file_path = os.path.join(raw_data_path, 'comm_log_df_' + user_id + '.pkl')
@@ -23,24 +38,18 @@ def create_interim_comm_data(username, users_df, contacts_df, raw_data_path, int
     return comm_df
 
 
-def comm_activity_columns():
-    activity_columns = []
-    for i in ['sms_sent', 'sms_received', 'phone_inbound', 'phone_outbound']:
-        for j in ['risky', 'neutral', 'supportive', 'unrated']:
-            if i == 'locations':
-                if j == 'neutral' or j == 'unrated':
-                    pass
-                else:
-                    activity_columns.append(i + '_' + j)
-            else:
-                activity_columns.append(i + '_' + j)
-    return activity_columns
 
 
-def sort_daily_comm(username, users_df, comm_df, interim_data_path):
+
+def time_bucket_comm(username, users_df, comm_df, interim_data_path, period):
+
     today = dt.date.today()
-    date_indices = pd.date_range(users_df.loc[username, 'date_created'], today, freq='D')
-
+    date_created = users_df.loc[username, 'date_created']
+    if period == 'day':
+        date_indices = pd.date_range(date_created, today, freq='D')
+    elif period == 'week':
+        date_indices = pd.date_range(date_created, today, freq='W-MON')
+    # TODO: Assertion or something since this is user input?
     activity_columns = comm_activity_columns()
     comm_activity_df = pd.DataFrame(np.nan, index=date_indices, columns=activity_columns)
 
@@ -75,6 +84,6 @@ def sort_daily_comm(username, users_df, comm_df, interim_data_path):
 
     comm_activity_df = comm_activity_df.fillna(0)
     comm_activity_df['total_comm'] = comm_activity_df.sum(axis=1)
-
-    interim_data_file_path = os.path.join(interim_data_path, 'daily_comm_log_df_' + username + '.pkl')
+    # print(comm_activity_df.head())
+    interim_data_file_path = os.path.join(interim_data_path, period + '_comm_log_df_' + username + '.pkl')
     comm_activity_df.to_pickle(interim_data_file_path)
