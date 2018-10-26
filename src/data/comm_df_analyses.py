@@ -50,6 +50,32 @@ def add_volume_by_type(comm_activity_df):
     return comm_activity_df
 
 
+def add_days_change_with_risky_interactions(weekly_comm_df):
+    #     Get (# of Days) Change in Days with Risky Interactions
+    current_risky_comm_days = weekly_comm_df['risky_comm_days'][1:]
+    prev_risky_comm_days = weekly_comm_df['risky_comm_days'].shift(1)
+    weekly_comm_df['change_in_risky_comm_days'] = (current_risky_comm_days - prev_risky_comm_days)
+    return weekly_comm_df
+
+
+def add_percent_change_in_risky_interactions(weekly_comm_df):
+    #     Get (%) Change in Risky Interactions
+    current_risky_comm = weekly_comm_df['risky_comm'][1:]
+    prev_risky_comm = weekly_comm_df['risky_comm'].shift(1)
+    change_in_risky_comm = (current_risky_comm - prev_risky_comm) / prev_risky_comm
+    weekly_comm_df['change_in_risky_comm'] = change_in_risky_comm
+    return weekly_comm_df
+
+
+def add_percent_comm_for_each_type(weekly_comm_df):
+    labels = ['risky', 'neutral', 'supportive', 'unrated']
+    for i in labels:
+        col_name = i + '_percent'
+        source_col = i + '_comm'
+        weekly_comm_df[col_name] = weekly_comm_df[source_col] / weekly_comm_df['total_comm']
+    return(weekly_comm_df)
+
+
 def add_days_with_comm_by_type(daily_comm_df, weekly_comm_df):
     labels = ['risky_comm', 'total_comm', 'supportive_comm', 'unrated_comm']
     cols = ['risky_comm_days', 'total_comm_days', 'supportive_comm_days', 'unrated_comm_days']
@@ -75,10 +101,10 @@ def add_days_with_comm_by_type(daily_comm_df, weekly_comm_df):
 
 
 def add_weekly_highest_day(daily_comm_df, weekly_comm_df):
-    i = 'total_comm'
+    # i = 'total_comm'
     weekday_dict = {0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri', 5: 'Sat', 6: 'Sun'}
     labels = ['risky_comm', 'total_comm']
-    cols = ['high_risky_comm_day', 'high_total_comm_day']
+    # cols = ['high_risky_comm_day', 'high_total_comm_day']
     data = daily_comm_df[labels]
     # date_indicies = pd.date_range(start, end, freq='7D')
     date_indices = weekly_comm_df.index
@@ -89,8 +115,8 @@ def add_weekly_highest_day(daily_comm_df, weekly_comm_df):
     for i in labels:
         temp['max_' + i] = temp[i] == data[i]
         for j in weekly_comm_df.index:
-            if weekly_comm_df[i][j] == 0:
-                activity_df[i][j] = '- No Max -'
+            if weekly_comm_df.loc[j, i] == 0:
+                activity_df.loc[j, i] = '- No Max -'
             else:
                 week_temp = temp[j:j + dt.timedelta(7)]
                 max_dates = week_temp[week_temp['max_' + i]].index
@@ -164,7 +190,12 @@ def comm_df_setup(username, users_df, contacts_df, raw_data_path,
     weekly_comm_df = time_bucket_comm(username, users_df, comm_df, interim_data_path, 'week')
 
     # These functions don't write to files
-    # weekly_comm_df = add_weekly_highest_day(daily_comm_df, weekly_comm_df)
-    # interim_data_file_path = os.path.join(interim_data_path,'week_comm_log_df_' + username + '.pkl')
-    # weekly_comm_df.to_pickle(interim_data_file_path)
-    print(weekly_comm_df.columns)
+    weekly_comm_df = add_weekly_highest_day(daily_comm_df, weekly_comm_df)
+    weekly_comm_df = add_days_with_comm_by_type(daily_comm_df, weekly_comm_df)
+    weekly_comm_df = add_percent_comm_for_each_type(weekly_comm_df)
+    weekly_comm_df = add_percent_change_in_risky_interactions(weekly_comm_df)
+    weekly_comm_df = add_days_change_with_risky_interactions(weekly_comm_df)
+
+    interim_data_file_path = os.path.join(interim_data_path,'week_comm_log_df_' + username + '.pkl')
+    weekly_comm_df.to_pickle(interim_data_file_path)
+    # print(weekly_comm_df.columns)

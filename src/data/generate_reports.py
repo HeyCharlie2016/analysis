@@ -3,6 +3,7 @@ import datetime as dt
 import pandas as pd
 
 import make_dataset
+import generate_report_data
 
 
 def generate_date_indices():
@@ -40,7 +41,8 @@ if __name__ == '__main__':
 	# print(max(date_indices).date())
 	# TODO: Assert end data is not ahead of today for db checks
 	usernames = make_dataset.refresh_user_data(usernames, PROJ_ROOT, max(date_indices).date())
-
-	# [chart_data, report_variables] = generate_report_data(usernames, date_indices, PROJ_ROOT)
+	print(usernames)
+	# next line to return: [chart_data, report_variables]
+	generate_report_data.generate_report_data(usernames, date_indices, PROJ_ROOT)
 	# generate_chart_figures(usernames, date_indices, chart_data)
 	# generate_html(usernames, report_variables)

@@ -61,7 +61,7 @@ def refresh_user_data(usernames, PROJ_ROOT, max_report_date):
                                              0)
     if len(usernames_to_update) == 0:
         print('Data is up to date!')
-        return True
+        return usernames
     else:
         print("updating data for:")
         print(usernames_to_update)
@@ -82,7 +82,7 @@ def refresh_user_data(usernames, PROJ_ROOT, max_report_date):
         # TODO Mirror functions for locations (TBD, testing architecture for downstream issues)
 
     # Confirm update
-    users_df = user_df_setup.mark_refreshed(usernames, users_df, os.path.join(interim_data_path, 'users_df.pkl'))
+    users_df = user_df_setup.mark_refreshed(updated_usernames, users_df, os.path.join(interim_data_path, 'users_df.pkl'))
     usernames = check_interim_data(usernames, max_report_date, os.path.join(interim_data_path, 'users_df.pkl'), 1)
     print('Dataset current for:')
     print(usernames)
