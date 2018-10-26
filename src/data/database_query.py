@@ -18,11 +18,12 @@ def get_user_ids(users_df, usernames):
 	# print(users_df['username'].values)
 	for e in usernames:
 		if e in users_df['username'].values:
+			# print(e.type())
 			user_ids.append(users_df[users_df['username'] == e]['_id'].values[0].decode())
 		else:
 			print('Username not found: ' + e)
 			usernames.remove(e)
-
+	print(usernames)
 	return user_ids, usernames
 
 
@@ -53,6 +54,7 @@ def make_raw_contacts_df(db, raw_data_path, user_ids):
 	contacts_df = pd.DataFrame(list(db.socialContact.find({'userId': {'$in': user_ids}})))
 	contacts_df['_id'] = contacts_df['_id'].astype('|S')
 	contacts_df.index = contacts_df['_id']
+
 	for e in user_ids:
 		user_contacts_df = contacts_df[contacts_df['userId'] == e]
 		data_file_path = os.path.join(raw_data_path, 'contacts_df_' + e + '.pkl')
@@ -98,7 +100,12 @@ def pull_raw_data(usernames, raw_data_path):
 	[user_ids, usernames] = get_user_ids(users_df, usernames)  # Maybe overly complex? Checks if each exists.
 	# print(user_ids)
 	# print(usernames)
-	if len(usernames) > 0:
+	try:
+		assert len(user_ids) == len(usernames)
+	except AssertionError:
+		print('User_ID Issue')
+
+	if len(user_ids) > 0:
 		make_raw_contacts_df(db, raw_data_path, user_ids)
 		make_raw_comm_log_df(db, raw_data_path, user_ids)
 		make_raw_location_df(db, raw_data_path, user_ids)

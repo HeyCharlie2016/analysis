@@ -71,10 +71,10 @@ def refresh_user_data(usernames, PROJ_ROOT, max_report_date):
         else:
             print("Updated data for:")
             print(updated_usernames)
-        users_df = user_df_setup.user_df_setup(usernames_to_update,
+        users_df = user_df_setup.user_df_setup(updated_usernames,
                                            os.path.join(raw_data_path, 'users_df.pkl'),
                                            os.path.join(interim_data_path, 'users_df.pkl'))
-    for username in usernames_to_update:
+    for username in updated_usernames:
         contacts_df = contacts_df_setup.contacts_df_setup(username, users_df, raw_data_path, interim_data_path)
 
         comm_df_analyses.comm_df_setup(username, users_df, contacts_df, raw_data_path,

@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
 	PROJ_ROOT = os.path.abspath(PROJ_ROOT)
 
-	usernames = ['liamkl', 'vinoct18', 'vinoct24', 'emily', 'zombeck']
+	usernames = ['liamkl', 'vinoct18', 'vinoct24', 'emily2', 'zombeck']
 	date_indices = generate_date_indices()
 	# print('max date')
 	# print(max(date_indices).date())
