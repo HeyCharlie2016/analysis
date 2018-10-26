@@ -42,6 +42,7 @@ if __name__ == '__main__':
 	# TODO: Assert end data is not ahead of today for db checks
 	usernames = make_dataset.refresh_user_data(usernames, PROJ_ROOT, max(date_indices).date())
 	print(usernames)
+
 	# next line to return: [chart_data, report_variables]
 	generate_report_data.generate_report_data(usernames, date_indices, PROJ_ROOT)
 	# generate_chart_figures(usernames, date_indices, chart_data)
