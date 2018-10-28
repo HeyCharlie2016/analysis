@@ -196,6 +196,6 @@ def comm_df_setup(username, users_df, contacts_df, raw_data_path,
     weekly_comm_df = add_percent_change_in_risky_interactions(weekly_comm_df)
     weekly_comm_df = add_days_change_with_risky_interactions(weekly_comm_df)
 
-    interim_data_file_path = os.path.join(interim_data_path,'week_comm_log_df_' + username + '.pkl')
+    interim_data_file_path = os.path.join(interim_data_path, 'week_comm_log_df_' + username + '.pkl')
     weekly_comm_df.to_pickle(interim_data_file_path)
     # print(weekly_comm_df.columns)

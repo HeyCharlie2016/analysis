@@ -103,7 +103,7 @@ def generate_report_data(usernames, date_indices, PROJ_ROOT):
 									"interim")
 	report_data_path = os.path.join(PROJ_ROOT,
 									"reports",
-									"report-variables")
+									"report_variables")
 	multi_index = pd.MultiIndex.from_product([usernames, date_indices], names=['usernames', 'date'])
 
 	comm_pie_chart_cols = ['risky_percent', 'neutral_percent', 'supportive_percent', 'unrated_percent']
