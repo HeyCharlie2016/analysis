@@ -4,6 +4,7 @@ import pandas as pd
 
 import make_dataset
 import generate_report_data
+import generate_html
 
 import sys
 # sys.path.append("../visualization/")
@@ -46,6 +47,10 @@ def generate_date_indices():
 	return new_method
 
 
+
+
+
+
 if __name__ == '__main__':
 
 	PROJ_ROOT = os.path.join(__file__,
@@ -69,8 +74,8 @@ if __name__ == '__main__':
 	report_chart_path = os.path.join(PROJ_ROOT,
 									"reports",
 									"figures")
-	# generate_report_charts.comm_days_line_chart(usernames, date_indices, comm_days_line_chart_data, report_chart_path)
-	# generate_report_charts.comm_vol_bar_chart(usernames, date_indices[:-1], comm_vol_bar_chart_data, report_chart_path)
+	generate_report_charts.comm_days_line_chart(usernames, date_indices, comm_days_line_chart_data, report_chart_path)
+	generate_report_charts.comm_vol_bar_chart(usernames, date_indices[:-1], comm_vol_bar_chart_data, report_chart_path)
 	generate_report_charts.comm_pie_chart(usernames, date_indices[-2], comm_pie_chart_data, report_chart_path)
 
-	# generate_html(usernames, report_variables)
+	generate_html.generate_html(usernames, report_variables, report_chart_path, PROJ_ROOT)
