@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import datetime as dt
 import numpy as np
+import json
 
 
 # Future steps: input report templates and only generate the needed data
@@ -26,9 +27,9 @@ def comm_pie_chart(comm_df, comm_pie_chart_data, username, date):
 			comm_pie_chart_data.loc[username, e] = data[e]
 		# data.index = [username]
 		# # comm_pie_chart_data = comm_pie_chart_data.append(data, ignore_index=True)
-		return comm_pie_chart_data
+		return comm_pie_chart_data.fillna(0)
 	print("no pie chart data")
-	return comm_pie_chart_data
+	return comm_pie_chart_data.fillna(0)
 
 
 def comm_days_line_chart(comm_df, comm_days_line_chart_data, username):
@@ -39,7 +40,7 @@ def comm_days_line_chart(comm_df, comm_days_line_chart_data, username):
 	for date in date_indices:
 		if date in comm_df.index:
 			comm_days_line_chart_data.loc[(username, date), cols] = comm_df.loc[date,cols]
-	return comm_days_line_chart_data
+	return comm_days_line_chart_data.fillna(0)
 
 
 def comm_vol_line_chart(comm_df, comm_vol_line_chart_data, username):
@@ -51,7 +52,7 @@ def comm_vol_line_chart(comm_df, comm_vol_line_chart_data, username):
 	for date in date_indices:
 		if date in comm_df.index:
 			comm_vol_line_chart_data.loc[(username, date), cols] = comm_df.loc[date,cols]
-	return comm_vol_line_chart_data
+	return comm_vol_line_chart_data.fillna(0)
 
 
 def generate_report_variables(username, report_variables, comm_df, date_indices):
@@ -111,7 +112,7 @@ def generate_report_data(usernames, date_indices, PROJ_ROOT):
 	comm_days_line_chart_cols = ['total_comm_days', 'risky_comm_days', 'supportive_comm_days']
 	comm_days_line_chart_data = pd.DataFrame(np.nan, index=multi_index, columns=comm_days_line_chart_cols)
 	comm_vol_line_chart_cols = ['total_comm', 'risky_comm', 'neutral_comm', 'supportive_comm', 'unrated_comm']
-	comm_vol_line_chart_data = pd.DataFrame(np.nan, index=multi_index, columns=comm_vol_line_chart_cols)
+	comm_vol_bar_chart_data = pd.DataFrame(np.nan, index=multi_index, columns=comm_vol_line_chart_cols)
 	report_variables = {}
 
 	report_date = max(date_indices).date()
@@ -119,24 +120,19 @@ def generate_report_data(usernames, date_indices, PROJ_ROOT):
 	for username in usernames:
 		interim_data_file_path = os.path.join(interim_data_path, 'week_comm_log_df_' + username + '.pkl')
 		weekly_comm_df = pd.read_pickle(interim_data_file_path)
-		print(weekly_comm_df.columns)
 
 		comm_pie_chart_data = comm_pie_chart(weekly_comm_df, comm_pie_chart_data, username, report_date - dt.timedelta(7))
-		comm_pie_chart_data.to_pickle(os.path.join(report_data_path + 'comm_pie_chart_data.pkl'))
-
-
 		comm_days_line_chart_data = comm_days_line_chart(weekly_comm_df, comm_days_line_chart_data, username)
-		comm_days_line_chart_data.to_pickle(os.path.join(report_data_path + 'comm_days_line_chart_data.pkl'))
-
-
-		comm_vol_line_chart_data = comm_vol_line_chart(weekly_comm_df, comm_vol_line_chart_data, username)
-		comm_vol_line_chart_data.to_pickle(os.path.join(report_data_path + 'comm_vol_line_chart_data.pkl'))
-
-
+		comm_vol_bar_chart_data = comm_vol_line_chart(weekly_comm_df, comm_vol_bar_chart_data, username)
 		report_variables = generate_report_variables(username, report_variables, weekly_comm_df, date_indices)
-		# TODO: write report variables to file
 
-	print(comm_vol_line_chart_data.index)
-	print(comm_vol_line_chart_data)
-	print(report_variables)
-	return comm_pie_chart_data, comm_days_line_chart_data, comm_vol_line_chart_data, report_variables
+	comm_pie_chart_data.to_pickle(os.path.join(report_data_path, 'comm_pie_chart_data.pkl'))
+	comm_days_line_chart_data.to_pickle(os.path.join(report_data_path, 'comm_days_line_chart_data.pkl'))
+	comm_vol_bar_chart_data.to_pickle(os.path.join(report_data_path, 'comm_vol_line_chart_data.pkl'))
+	with open(os.path.join(report_data_path, 'report_variables.txt'), 'w') as file:
+		file.write(json.dumps(report_variables))
+
+	print(comm_vol_bar_chart_data.index)
+	print(comm_vol_bar_chart_data)
+	# print(report_variables)
+	return comm_pie_chart_data, comm_days_line_chart_data, comm_vol_bar_chart_data, report_variables

@@ -63,11 +63,12 @@ if __name__ == '__main__':
 	usernames = make_dataset.refresh_user_data(usernames, PROJ_ROOT, max(date_indices).date())
 	print(usernames)
 
-	[comm_pie_chart_data, comm_days_line_chart_data, comm_vol_line_chart_data, report_variables] = \
+	[comm_pie_chart_data, comm_days_line_chart_data, comm_vol_bar_chart_data, report_variables] = \
 		generate_report_data.generate_report_data(usernames, date_indices, PROJ_ROOT)
 
 	report_chart_path = os.path.join(PROJ_ROOT,
 									"reports",
 									"figures")
 	generate_report_charts.comm_days_line_chart(usernames, date_indices, comm_days_line_chart_data, report_chart_path)
+	generate_report_charts.comm_vol_bar_chart(usernames, date_indices[:-1], comm_vol_bar_chart_data, report_chart_path)
 	# generate_html(usernames, report_variables)
