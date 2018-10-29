@@ -61,7 +61,7 @@ if __name__ == '__main__':
 	# print(max(date_indices).date())
 	# TODO: Assert end data is not ahead of today for db checks
 	usernames = make_dataset.refresh_user_data(usernames, PROJ_ROOT, max(date_indices).date())
-	print(usernames)
+	print(date_indices)
 
 	[comm_pie_chart_data, comm_days_line_chart_data, comm_vol_bar_chart_data, report_variables] = \
 		generate_report_data.generate_report_data(usernames, date_indices, PROJ_ROOT)
@@ -69,6 +69,8 @@ if __name__ == '__main__':
 	report_chart_path = os.path.join(PROJ_ROOT,
 									"reports",
 									"figures")
-	generate_report_charts.comm_days_line_chart(usernames, date_indices, comm_days_line_chart_data, report_chart_path)
-	generate_report_charts.comm_vol_bar_chart(usernames, date_indices[:-1], comm_vol_bar_chart_data, report_chart_path)
+	# generate_report_charts.comm_days_line_chart(usernames, date_indices, comm_days_line_chart_data, report_chart_path)
+	# generate_report_charts.comm_vol_bar_chart(usernames, date_indices[:-1], comm_vol_bar_chart_data, report_chart_path)
+	generate_report_charts.comm_pie_chart(usernames, date_indices[-2], comm_pie_chart_data, report_chart_path)
+
 	# generate_html(usernames, report_variables)

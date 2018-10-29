@@ -32,6 +32,9 @@ def create_interim_comm_data(username, users_df, contacts_df, raw_data_path, int
     comm_df = user_activity[['contactId', 'direction', 'timestamp', 'risk_score']]
     comm_df.index = pd.to_datetime(comm_df['timestamp'], unit="ms") - dt.timedelta(hours=4)
 
+    # print('comm df')
+    # print(min(comm_df.index))
+
     interim_data_file_path = os.path.join(interim_data_path, 'comm_log_df_' + username + '.pkl')
     comm_df.to_pickle(interim_data_file_path)
     return comm_df
@@ -108,6 +111,7 @@ def add_weekly_highest_day(daily_comm_df, weekly_comm_df):
     data = daily_comm_df[labels]
     # date_indicies = pd.date_range(start, end, freq='7D')
     date_indices = weekly_comm_df.index
+
     activity_df = pd.DataFrame(np.nan, index=date_indices, columns=labels)
 
     # makes columns of the corresponding weekly max next to each index

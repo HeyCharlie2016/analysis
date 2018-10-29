@@ -20,8 +20,10 @@ def comm_pie_chart(comm_df, comm_pie_chart_data, username, date):
 	# cols = ['risky_percent', 'neutral_percent', 'supportive_percent', 'unrated_percent']
 	#change to a multi-index to match the other data tables?
 	cols = comm_pie_chart_data.columns
+	# user_xs = comm_pie_chart_data.xs(username)
 	if date in comm_df.index:
-		data = comm_df[cols].loc[date]
+		# comm_pie_chart_data.loc[(username, date), cols] = comm_df.loc[date, cols]
+		data = comm_df.loc[date, cols]
 		# replace this loop with a merge
 		for e in cols:
 			comm_pie_chart_data.loc[username, e] = data[e]
@@ -39,7 +41,7 @@ def comm_days_line_chart(comm_df, comm_days_line_chart_data, username):
 	date_indices = user_xs.index
 	for date in date_indices:
 		if date in comm_df.index:
-			comm_days_line_chart_data.loc[(username, date), cols] = comm_df.loc[date,cols]
+			comm_days_line_chart_data.loc[(username, date), cols] = comm_df.loc[date, cols]
 	return comm_days_line_chart_data.fillna(0)
 
 
@@ -51,7 +53,7 @@ def comm_vol_line_chart(comm_df, comm_vol_line_chart_data, username):
 	date_indices = user_xs.index
 	for date in date_indices:
 		if date in comm_df.index:
-			comm_vol_line_chart_data.loc[(username, date), cols] = comm_df.loc[date,cols]
+			comm_vol_line_chart_data.loc[(username, date), cols] = comm_df.loc[date, cols]
 	return comm_vol_line_chart_data.fillna(0)
 
 
@@ -61,8 +63,7 @@ def generate_report_variables(username, report_variables, comm_df, date_indices)
 
 	avg_weekly_total_comm = comm_df['total_comm'][min(date_indices).date():report_date].mean()
 	avg_weekly_risky_comm = comm_df['risky_comm'][min(date_indices).date():report_date].mean()
-	print(comm_df.index)
-	print(report_date)
+
 	if report_date in comm_df.index:
 		day_with_max_total_comm = comm_df.loc[report_date, 'high_total_comm_day']
 		day_with_max_risky_comm = comm_df.loc[report_date, 'high_risky_comm_day']
@@ -106,6 +107,7 @@ def generate_report_data(usernames, date_indices, PROJ_ROOT):
 									"reports",
 									"report_variables")
 	multi_index = pd.MultiIndex.from_product([usernames, date_indices], names=['usernames', 'date'])
+	# report_date_multi_index = pd.MultiIndex.from_product([usernames, date_indices[-1]], names=['usernames', 'date'])
 
 	comm_pie_chart_cols = ['risky_percent', 'neutral_percent', 'supportive_percent', 'unrated_percent']
 	comm_pie_chart_data = pd.DataFrame(np.nan, index=usernames, columns=comm_pie_chart_cols)
@@ -132,7 +134,7 @@ def generate_report_data(usernames, date_indices, PROJ_ROOT):
 	with open(os.path.join(report_data_path, 'report_variables.txt'), 'w') as file:
 		file.write(json.dumps(report_variables))
 
-	print(comm_vol_bar_chart_data.index)
-	print(comm_vol_bar_chart_data)
+	# print(comm_pie_chart_data.index)
+	# print(comm_pie_chart_data)
 	# print(report_variables)
 	return comm_pie_chart_data, comm_days_line_chart_data, comm_vol_bar_chart_data, report_variables

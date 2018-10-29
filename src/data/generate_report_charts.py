@@ -52,22 +52,20 @@ def comm_days_line_chart(usernames, date_indices, comm_days_line_chart_data, rep
 
 
 def comm_vol_bar_chart(usernames, date_indices, comm_vol_bar_chart_data, report_chart_path):
+	chart_colors = {'risky': '#e65c00',
+					'neutral': '#b3b3ff',
+					'unrated': '#C0C0C0',
+					'supportive': '#009900'}
+	labels = ['Risky', 'Neutral', 'Supportive', 'Unrated']
+	cols = ['risky_comm', 'neutral_comm', 'supportive_comm', 'unrated_comm']
+	date_strings = dates_to_strings(date_indices)
+	colors = []
+	for k in labels:
+		colors.append(chart_colors[k.lower()])
+
 	for count, username in enumerate(usernames):
 		fig = plt.figure()
 		ax = fig.add_subplot(111)
-
-		chart_colors = {'risky': '#e65c00',
-						'neutral': '#b3b3ff',
-						'unrated': '#C0C0C0',
-						'supportive': '#009900'}
-		labels = ['Risky', 'Neutral', 'Supportive', 'Unrated']
-		cols = ['risky_comm', 'neutral_comm', 'supportive_comm', 'unrated_comm']
-		date_strings = dates_to_strings(date_indices)
-
-		colors = []
-		for k in labels:
-			colors.append(chart_colors[k.lower()])
-
 		data = comm_vol_bar_chart_data.xs(username)[min(date_indices):max(date_indices)]
 		rolling_total = pd.DataFrame(0, data[:-1].index, columns=['temp'])
 
@@ -102,5 +100,91 @@ def comm_vol_bar_chart(usernames, date_indices, comm_vol_bar_chart_data, report_
 		ax.legend(handles[::-1], labels[::-1], loc=2, bbox_to_anchor=(1, 1), frameon=False, fontsize=14)
 
 		filename = 'WklyComm-' + username + '.png'
+		filepath = os.path.join(report_chart_path, filename)
+		fig.savefig(filepath, bbox_inches="tight")
+
+
+def comm_pie_chart(usernames, date_index, comm_pie_chart_data, report_chart_path):
+	for count, username in enumerate(usernames):
+		fig = plt.figure()
+		ax = fig.add_subplot(111)
+
+		chart_colors = {'risky': '#e65c00',
+						'neutral': '#b3b3ff',
+						'unrated': '#C0C0C0',
+						'supportive': '#009900'}
+		labels = ['Risky', 'Neutral', 'Supportive', 'Unrated']
+
+		cols = ['risky_percent', 'neutral_percent', 'supportive_percent', 'unrated_percent']
+		labels = ['Risky', 'Neutral', 'Supportive', 'Unrated']
+		explode = [0, 0, 0, 0]
+
+		colors = []
+		for k in labels:
+			colors.append(chart_colors[k.lower()])
+		# print(date_index)
+		# data = comm_vol_bar_chart_data.xs(username)[min(date_indices):max(date_indices)]
+		data = comm_pie_chart_data.xs(username)
+		# print(data.index)
+		# print(data)
+
+		if not np.isnan(data[cols[0]]):
+			# data = comm_pie_chart_data.loc[username]
+
+			#         ORIGINAL - no data labels
+			#         chart = ax.pie( users[e]['weekly_activity'][cols].loc[users[e]['weekly_activity'].index[-2]],
+			#                      explode=explode, colors = colors)
+			#         chart = ax.pie(data, explode=explode, colors = colors)
+
+			#         First Attempt - dummy data labels
+			#         def func(pct, allvals):
+			#             absolute = int(pct/100.*np.sum(allvals))
+			#             return "\n{:.1f}%".format(pct, absolute)
+			#         wedges, texts, autotexts = ax.pie(data, autopct=lambda pct: func(pct, data), textprops=dict(color="w"))
+
+			#         Second Attempt - fancy data lables
+			wedges, texts = ax.pie(data, explode=explode, colors=colors)
+			kw = dict(xycoords='data', textcoords='data', zorder=0, va="center",
+					  arrowprops=dict(facecolor='silver', arrowstyle="-"))
+			low_count = 0
+			for i, p in enumerate(wedges):
+				if data[i] > 0.02:
+					ang = (p.theta2 - p.theta1) / 2. + p.theta1
+					y = np.sin(np.deg2rad(ang))
+					x = np.cos(np.deg2rad(ang))
+					horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+					connectionstyle = "angle,angleA=0,angleB={}".format(ang)
+					kw["arrowprops"].update({"connectionstyle": connectionstyle})
+
+					text = labels[i] + '\n' + '{:.0%}'.format(data[i])
+					text_x = x + (1 - x) * 2 / 3 * np.sign(
+						x)  # setting the x coordinate of the text-box to be halfway between the cahrt and x = 1 (or -1)
+					if abs(text_x) > 1:
+						text_x = np.sign(x)
+					ax.annotate(text, xy=(x, y), xytext=(text_x, 1.2 * y),
+								horizontalalignment=horizontalalignment, **kw, fontsize=14)
+				else:
+					text = labels[i] + ': ' + '{:.0%}'.format(data[i])
+					ax.annotate(text, xy=(1.5, 0.2 * low_count - 1), fontsize=14, ha='center')
+					low_count += 1
+			ax.axis('equal')
+		else:
+			ax.annotate("No Communication last week", xy=(0.5, 0.5), fontsize=14, va='center',
+						ha='center')
+			ax.spines['left'].set_visible(False)
+			ax.spines['right'].set_visible(False)
+			ax.spines['top'].set_visible(False)
+			ax.spines['bottom'].set_visible(False)
+			plt.tick_params(
+				#             axis='x',          # changes apply to the x-axis
+				which='both',  # both major and minor ticks are affected
+				bottom=False,  # ticks along the bottom edge are off
+				top=False,  # ticks along the top edge are off
+				labelbottom=False,
+				right=False,
+				left=False,
+				labelleft=False)
+
+		filename = 'CommPie-' + username + '.png'
 		filepath = os.path.join(report_chart_path, filename)
 		fig.savefig(filepath, bbox_inches="tight")
