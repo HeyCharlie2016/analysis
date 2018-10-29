@@ -47,7 +47,7 @@ def comm_days_line_chart(usernames, date_indices, comm_days_line_chart_data, rep
 		ax.spines['right'].set_visible(False)
 		ax.spines['top'].set_visible(False)
 
-		filename = 'WklyCommDays-' + username + '.png'
+		filename = 'days_w_comm_chart' + '-' + username + '.png'
 		filepath = os.path.join(report_chart_path, filename)
 		fig.savefig(filepath, bbox_inches="tight")
 
@@ -100,9 +100,9 @@ def comm_vol_bar_chart(usernames, date_indices, comm_vol_bar_chart_data, report_
 		handles, labels = ax.get_legend_handles_labels()
 		ax.legend(handles[::-1], labels[::-1], loc=2, bbox_to_anchor=(1, 1), frameon=False, fontsize=14)
 
-		# filename = 'WklyComm-' + username + '.png'
-		# filepath = os.path.join(report_chart_path, filename)
-		# fig.savefig(filepath, bbox_inches="tight")
+		filename = 'weekly_comm_chart' + '-' + username + '.png'
+		filepath = os.path.join(report_chart_path, filename)
+		fig.savefig(filepath, bbox_inches="tight")
 
 		# img = mpimg.imread(filepath)
 		# imgplot = plt.imshow(img)
@@ -190,6 +190,6 @@ def comm_pie_chart(usernames, date_index, comm_pie_chart_data, report_chart_path
 				left=False,
 				labelleft=False)
 
-		filename = 'CommPie-' + username + '.png'
+		filename = 'comm_pie_chart' + '-' + username + '.png'
 		filepath = os.path.join(report_chart_path, filename)
 		fig.savefig(filepath, bbox_inches="tight")

@@ -39,7 +39,7 @@ def generate_html(usernames, report_variables, report_chart_path, PROJ_ROOT):
 	template = env.get_template(html_template_filepath)
 
 	for username in usernames:
-		report_charts = ['WklyComm', 'CommPie', 'WklyCommDays']
+		report_charts = ['weekly_comm_chart', 'comm_pie_chart', 'days_w_comm_chart']
 		for chart in report_charts:
 			chart_img = get_chart_img(username, chart, report_chart_path)
 			report_variables[username][chart] = chart_img
@@ -55,4 +55,4 @@ def generate_html(usernames, report_variables, report_chart_path, PROJ_ROOT):
 		html_file = open(html_file_path, "w")
 		html_file.write(html_out)
 		html_file.close()
-	print(report_variables['vinoct18']['CommPie'])
+	# print(report_variables['vinoct18']['CommPie'])
