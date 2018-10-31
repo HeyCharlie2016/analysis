@@ -73,6 +73,7 @@ if __name__ == '__main__':
 										 'report_usernames.csv')
 
 	usernames = parse_usernames(report_usernames_path)
+
 	print(usernames)
 	# usernames = ['liamkl', 'vinoct18', 'vinoct24', 'emily2', 'zombeck']
 	date_indices = generate_date_indices()

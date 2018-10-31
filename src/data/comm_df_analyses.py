@@ -3,6 +3,7 @@ import datetime as dt
 import numpy as np
 import os
 
+import utils
 
 def comm_activity_columns():
     activity_columns = []
@@ -103,36 +104,10 @@ def add_days_with_comm_by_type(daily_comm_df, weekly_comm_df):
     return weekly_comm_df
 
 
-def add_weekly_highest_day(daily_comm_df, weekly_comm_df):
-    # i = 'total_comm'
-    weekday_dict = {0: 'Mon', 1: 'Tue', 2: 'Wed', 3: 'Thu', 4: 'Fri', 5: 'Sat', 6: 'Sun'}
-    labels = ['risky_comm', 'total_comm']
-    # cols = ['high_risky_comm_day', 'high_total_comm_day']
-    data = daily_comm_df[labels]
-    # date_indicies = pd.date_range(start, end, freq='7D')
-    date_indices = weekly_comm_df.index
-
-    activity_df = pd.DataFrame(np.nan, index=date_indices, columns=labels)
-
-    # makes columns of the corresponding weekly max next to each index
-    temp = data.groupby(pd.cut(data.index, activity_df.index, right=False)).transform(max)
-    for i in labels:
-        temp['max_' + i] = temp[i] == data[i]
-        for j in weekly_comm_df.index:
-            if weekly_comm_df.loc[j, i] == 0:
-                activity_df.loc[j, i] = '- No Max -'
-            else:
-                week_temp = temp[j:j + dt.timedelta(7)]
-                max_dates = week_temp[week_temp['max_' + i]].index
-                days = []
-                for k in max_dates:
-                    days.append(weekday_dict[k.weekday()])
-                if len(days) < 4:
-                    activity_df.loc[j] = ', '.join(days)
-                else:
-                    activity_df.loc[j] = '- No Max -'
-        weekly_comm_df['high_' + i + '_day'] = activity_df[i]
-    return weekly_comm_df
+# def add_weekly_highest_day(daily_comm_df, weekly_comm_df):
+#     cols = ['risky_comm', 'total_comm']
+#     weekly_com_df = utils.add_weekly_highest_day(daily_comm_df, weekly_comm_df, cols)
+#     return weekly_comm_df
 
 
 def time_bucket_comm(username, users_df, comm_df, interim_data_path, period):
@@ -194,11 +169,11 @@ def comm_df_setup(username, users_df, contacts_df, raw_data_path,
     weekly_comm_df = time_bucket_comm(username, users_df, comm_df, interim_data_path, 'week')
 
     # These functions don't write to files
-    weekly_comm_df = add_weekly_highest_day(daily_comm_df, weekly_comm_df)
+    weekly_comm_df = utils.add_weekly_highest_day(daily_comm_df, weekly_comm_df, ['risky_comm', 'total_comm'])
     weekly_comm_df = add_days_with_comm_by_type(daily_comm_df, weekly_comm_df)
     weekly_comm_df = add_percent_comm_for_each_type(weekly_comm_df)
     weekly_comm_df = add_percent_change_in_risky_interactions(weekly_comm_df)
-    weekly_comm_df = add_days_change_with_risky_interactions(weekly_comm_df)
+    weekly_comm_df = utils.add_days_change(weekly_comm_df, 'risky_comm_days')
 
     interim_data_file_path = os.path.join(interim_data_path, 'week_comm_log_df_' + username + '.pkl')
     weekly_comm_df.to_pickle(interim_data_file_path)

@@ -18,7 +18,7 @@ import json
 
 def comm_pie_chart(comm_df, comm_pie_chart_data, username, date):
 	# cols = ['risky_percent', 'neutral_percent', 'supportive_percent', 'unrated_percent']
-	#change to a multi-index to match the other data tables?
+	# change to a multi-index to match the other data tables?
 	cols = comm_pie_chart_data.columns
 	# user_xs = comm_pie_chart_data.xs(username)
 	if date in comm_df.index:
@@ -44,32 +44,32 @@ def multi_index_chart_data(source_data_df, chart_data_df, username):
 		if date in source_data_df.index:
 			chart_data_df.loc[(username, date), cols] = source_data_df.loc[date, cols]
 	return chart_data_df.fillna(0)
+#
+#
+# def comm_days_line_chart(comm_df, comm_days_line_chart_data, username):
+# 	cols = comm_days_line_chart_data.columns
+# 	user_xs = comm_days_line_chart_data.xs(username)
+# 	# date_indices = np.unique(comm_days_line_chart_data.index.get_level_values('date'))
+# 	date_indices = user_xs.index
+# 	for date in date_indices:
+# 		if date in comm_df.index:
+# 			comm_days_line_chart_data.loc[(username, date), cols] = comm_df.loc[date, cols]
+# 	return comm_days_line_chart_data.fillna(0)
+#
+#
+# def comm_vol_line_chart(comm_df, comm_vol_line_chart_data, username):
+# 	# TODO: check values
+# 	cols = comm_vol_line_chart_data.columns
+# 	user_xs = comm_vol_line_chart_data.xs(username)
+# 	# date_indices = np.unique(comm_vol_line_chart_data.index.get_level_values('date'))
+# 	date_indices = user_xs.index
+# 	for date in date_indices:
+# 		if date in comm_df.index:
+# 			comm_vol_line_chart_data.loc[(username, date), cols] = comm_df.loc[date, cols]
+# 	return comm_vol_line_chart_data.fillna(0)
 
 
-def comm_days_line_chart(comm_df, comm_days_line_chart_data, username):
-	cols = comm_days_line_chart_data.columns
-	user_xs = comm_days_line_chart_data.xs(username)
-	# date_indices = np.unique(comm_days_line_chart_data.index.get_level_values('date'))
-	date_indices = user_xs.index
-	for date in date_indices:
-		if date in comm_df.index:
-			comm_days_line_chart_data.loc[(username, date), cols] = comm_df.loc[date, cols]
-	return comm_days_line_chart_data.fillna(0)
-
-
-def comm_vol_line_chart(comm_df, comm_vol_line_chart_data, username):
-	# TODO: check values
-	cols = comm_vol_line_chart_data.columns
-	user_xs = comm_vol_line_chart_data.xs(username)
-	# date_indices = np.unique(comm_vol_line_chart_data.index.get_level_values('date'))
-	date_indices = user_xs.index
-	for date in date_indices:
-		if date in comm_df.index:
-			comm_vol_line_chart_data.loc[(username, date), cols] = comm_df.loc[date, cols]
-	return comm_vol_line_chart_data.fillna(0)
-
-
-def generate_report_variables(username, report_variables, comm_df, date_indices):
+def generate_report_variables(username, report_variables, comm_df, location_log_df, date_indices, locations_df):
 	report_date = max(date_indices).date()
 	today = dt.date.today()
 
@@ -80,17 +80,21 @@ def generate_report_variables(username, report_variables, comm_df, date_indices)
 		day_with_max_total_comm = comm_df.loc[report_date, 'high_total_comm_day']
 		day_with_max_risky_comm = comm_df.loc[report_date, 'high_risky_comm_day']
 		change_in_risky_comm = comm_df['change_in_risky_comm'][report_date]
+		day_with_max_risky_loc = location_log_df['high_risky_loc_visits_day'][report_date]
 		change_in_risky_comm = '{:.0%}'.format(change_in_risky_comm)
 		change_in_risky_comm_days = comm_df['change_in_risky_comm_days'][report_date]
+		change_in_risky_loc_days = location_log_df['change_in_days_w_risky_loc_visits'][report_date]
+		known_risky_loc = len(locations_df.loc[locations_df['type'] == 'risky'])
 	else:
 		day_with_max_total_comm = np.nan
 		day_with_max_risky_comm = np.nan
 		change_in_risky_comm = np.nan
 		change_in_risky_comm_days = np.nan
+		day_with_max_risky_loc = np.nan
+		change_in_risky_loc_days = np.nan
+		known_risky_loc = np.nan
+		# TODO: not all of these should be NA based on comm date
 
-	# change_in_risky_loc_days = comm_df['change_in_days_w_risky_loc_visits'][date_indicies[-2]]
-	# day_with_max_risky_loc = users[e]['weekly_loc_visits']['high_risky_loc_visits_day'][date_indicies[-2]]
-	# known_risky_loc = users[e]['summary_stats']['number_of_risky_locations']
 
 	report_variables[username] = {"title": "HeyCharlie User Report: " + username + " " + today.strftime('%b %d %Y'),
 								"user_name": username,
@@ -99,13 +103,13 @@ def generate_report_variables(username, report_variables, comm_df, date_indices)
 								"report_week": report_date.strftime('%b %d'),
 								"change_in_risky_comm": change_in_risky_comm,
 								"change_in_risky_comm_days": '{:+.0f}'.format(change_in_risky_comm_days) + " Days",
-								# "change_in_risky_loc_days": '{:+.0f}'.format(change_in_risky_loc_days) + " Days",
+								"change_in_risky_loc_days": '{:+.0f}'.format(change_in_risky_loc_days) + " Days",
 								"avg_weekly_total_comm": '{:.0f}'.format(avg_weekly_total_comm),
 								"avg_weekly_risky_comm": '{:.0f}'.format(avg_weekly_risky_comm),
 								"day_with_max_total_comm": day_with_max_total_comm,
-								"day_with_max_risky_comm": day_with_max_risky_comm}
-								# "day_with_max_risky_loc": day_with_max_risky_loc,
-								# "known_risky_loc": '{:.0f}'.format(known_risky_loc)}
+								"day_with_max_risky_comm": day_with_max_risky_comm,
+								"day_with_max_risky_loc": day_with_max_risky_loc,
+								"known_risky_loc": '{:.0f}'.format(known_risky_loc)}
 	return report_variables
 
 
@@ -138,12 +142,15 @@ def generate_report_data(usernames, date_indices, PROJ_ROOT):
 		weekly_comm_df = pd.read_pickle(interim_comm_data_file_path)
 		interim_loc_data_file_path = os.path.join(interim_data_path, 'week_loc_log_df_' + username + '.pkl')
 		weekly_loc_log_df = pd.read_pickle(interim_loc_data_file_path)
+		locations_data_file_path = os.path.join(interim_data_path, 'locations_df_' + username + '.pkl')
+		locations_df = pd.read_pickle(locations_data_file_path)
 
 		comm_pie_chart_data = comm_pie_chart(weekly_comm_df, comm_pie_chart_data, username, report_date - dt.timedelta(7))
 		comm_days_line_chart_data = multi_index_chart_data(weekly_comm_df, comm_days_line_chart_data, username)
 		comm_vol_bar_chart_data = multi_index_chart_data(weekly_comm_df, comm_vol_bar_chart_data, username)
 		loc_days_bar_chart_data = multi_index_chart_data(weekly_loc_log_df, loc_days_bar_chart_data, username)
-		report_variables = generate_report_variables(username, report_variables, weekly_comm_df, date_indices)
+		report_variables = generate_report_variables(username, report_variables, weekly_comm_df, weekly_loc_log_df,
+													 date_indices, locations_df)
 
 	comm_pie_chart_data.to_pickle(os.path.join(report_data_path, 'comm_pie_chart_data.pkl'))
 	comm_days_line_chart_data.to_pickle(os.path.join(report_data_path, 'comm_days_line_chart_data.pkl'))
@@ -152,7 +159,7 @@ def generate_report_data(usernames, date_indices, PROJ_ROOT):
 	with open(os.path.join(report_data_path, 'report_variables.txt'), 'w') as file:
 		file.write(json.dumps(report_variables))
 
-	# print(loc_days_bar_chart_data.index)
-	# print(loc_days_bar_chart_data)
+	print(comm_days_line_chart_data.index)
+	print(comm_days_line_chart_data)
 	# print(report_variables)
 	return comm_pie_chart_data, comm_days_line_chart_data, comm_vol_bar_chart_data, loc_days_bar_chart_data, report_variables
