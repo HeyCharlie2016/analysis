@@ -1,6 +1,7 @@
 import os
 import datetime as dt
 import pandas as pd
+import csv
 
 import make_dataset
 import generate_report_data
@@ -47,8 +48,15 @@ def generate_date_indices():
 	return new_method
 
 
-
-
+def parse_usernames(datafile):
+		data = []
+		n = 0
+		with open(datafile, "r") as f:
+			data_reader = csv.reader(f)
+			for i, row in enumerate(data_reader):
+				data.append(row)
+		print(data[0])
+		return data[0]
 
 
 if __name__ == '__main__':
@@ -60,7 +68,13 @@ if __name__ == '__main__':
 
 	PROJ_ROOT = os.path.abspath(PROJ_ROOT)
 
-	usernames = ['liamkl', 'vinoct18', 'vinoct24', 'emily2', 'zombeck']
+	report_usernames_path = os.path.join(PROJ_ROOT,
+										"reports",
+										 'report_usernames.csv')
+
+	usernames = parse_usernames(report_usernames_path)
+	print(usernames)
+	# usernames = ['liamkl', 'vinoct18', 'vinoct24', 'emily2', 'zombeck']
 	date_indices = generate_date_indices()
 	# print('max date')
 	# print(max(date_indices).date())

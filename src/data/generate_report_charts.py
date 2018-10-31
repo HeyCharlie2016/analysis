@@ -2,7 +2,6 @@ import os
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-import matplotlib.image as mpimg
 import numpy as np
 import pandas as pd
 import math
@@ -104,10 +103,6 @@ def comm_vol_bar_chart(usernames, date_indices, comm_vol_bar_chart_data, report_
 		filepath = os.path.join(report_chart_path, filename)
 		fig.savefig(filepath, bbox_inches="tight")
 
-		# img = mpimg.imread(filepath)
-		# imgplot = plt.imshow(img)
-		# plt.show()
-
 
 def comm_pie_chart(usernames, date_index, comm_pie_chart_data, report_chart_path):
 	for count, username in enumerate(usernames):
@@ -127,27 +122,10 @@ def comm_pie_chart(usernames, date_index, comm_pie_chart_data, report_chart_path
 		colors = []
 		for k in labels:
 			colors.append(chart_colors[k.lower()])
-		# print(date_index)
-		# data = comm_vol_bar_chart_data.xs(username)[min(date_indices):max(date_indices)]
+
 		data = comm_pie_chart_data.xs(username)
-		# print(data.index)
-		# print(data)
 
 		if not np.isnan(data[cols[0]]):
-			# data = comm_pie_chart_data.loc[username]
-
-			#         ORIGINAL - no data labels
-			#         chart = ax.pie( users[e]['weekly_activity'][cols].loc[users[e]['weekly_activity'].index[-2]],
-			#                      explode=explode, colors = colors)
-			#         chart = ax.pie(data, explode=explode, colors = colors)
-
-			#         First Attempt - dummy data labels
-			#         def func(pct, allvals):
-			#             absolute = int(pct/100.*np.sum(allvals))
-			#             return "\n{:.1f}%".format(pct, absolute)
-			#         wedges, texts, autotexts = ax.pie(data, autopct=lambda pct: func(pct, data), textprops=dict(color="w"))
-
-			#         Second Attempt - fancy data lables
 			wedges, texts = ax.pie(data, explode=explode, colors=colors)
 			kw = dict(xycoords='data', textcoords='data', zorder=0, va="center",
 					  arrowprops=dict(facecolor='silver', arrowstyle="-"))
