@@ -26,7 +26,7 @@ def generate_html(usernames, report_variables, report_chart_path, PROJ_ROOT):
 	template = env.get_template('HeyCharlieReportTemplateV2.html')
 
 	for username in usernames:
-		report_charts = ['weekly_comm_chart', 'comm_pie_chart', 'days_w_comm_chart']
+		report_charts = ['weekly_comm_chart', 'comm_pie_chart', 'days_w_comm_chart', 'days_w_risky_loc_chart']
 		for chart in report_charts:
 			chart_img = get_chart_img(username, chart, report_chart_path)
 			report_variables[username][chart] = chart_img

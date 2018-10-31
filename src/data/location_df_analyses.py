@@ -35,6 +35,7 @@ def add_weekly_totals(daily_loc_df, weekly_loc_df):
 	for i in columns:
 		col_name = 'days_w_' + i
 		weekly_loc_df[col_name] = activity_df[col_name]
+	print(weekly_loc_df.head())
 	return weekly_loc_df
 
 
@@ -56,6 +57,7 @@ def pull_location_visits(username, user_loc_activity):
 	location_visits = {}
 	in_location = False
 	start_index = ''
+	time_difference = dt.timedelta(minutes=1000)
 	for c, i in enumerate(activity.index):
 		if not in_location:
 			location_visits[i] = {'locationId': '', 'start_time': '', 'end_time': '', 'risk_type': ''}
@@ -133,7 +135,7 @@ def create_interim_loc_data(username, users_df, user_locations_df, raw_data_path
 		risk_types = pd.DataFrame(np.nan, index=user_loc_activity.index, columns=['type'])
 		for i in user_loc_activity.index:
 			location_id = user_loc_activity['locationId'][i]
-			risk_types['type'] =  user_locations_df.loc[location_id]['type']
+			risk_types['type'] = user_locations_df.loc[location_id]['type']
 			user_loc_activity['risk_type'] = risk_types
 
 	location_visits_df = pull_location_visits(username, user_loc_activity)
@@ -143,16 +145,11 @@ def create_interim_loc_data(username, users_df, user_locations_df, raw_data_path
 
 
 def location_df_setup(username, users_df, locations_df, raw_data_path, interim_data_path):
-	location_visits_df = create_interim_loc_data(username, users_df, locations_df, raw_data_path,
-                                                     interim_data_path)
+	location_visits_df = create_interim_loc_data(username, users_df, locations_df, raw_data_path, interim_data_path)
 	daily_loc_log_df = time_bucket_visits(username, users_df, location_visits_df, interim_data_path, 'day')
 	weekly_loc_log_df = time_bucket_visits(username, users_df, location_visits_df, interim_data_path, 'week')
 	# These functions don't write to files
 	weekly_loc_log_df = add_weekly_totals(daily_loc_log_df, weekly_loc_log_df)
-	# weekly_comm_df = add_days_with_comm_by_type(daily_comm_df, weekly_comm_df)
-    # weekly_comm_df = add_percent_comm_for_each_type(weekly_comm_df)
-    # weekly_comm_df = add_percent_change_in_risky_interactions(weekly_comm_df)
-    # weekly_comm_df = add_days_change_with_risky_interactions(weekly_comm_df)
 
 	interim_data_file_path = os.path.join(interim_data_path, 'week_loc_log_df_' + username + '.pkl')
 	weekly_loc_log_df.to_pickle(interim_data_file_path)

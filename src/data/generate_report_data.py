@@ -34,6 +34,18 @@ def comm_pie_chart(comm_df, comm_pie_chart_data, username, date):
 	return comm_pie_chart_data.fillna(0)
 
 
+def multi_index_chart_data(source_data_df, chart_data_df, username):
+	cols = chart_data_df.columns
+	# print(cols)
+	user_xs = chart_data_df.xs(username)
+	# date_indices = np.unique(comm_days_line_chart_data.index.get_level_values('date'))
+	date_indices = user_xs.index
+	for date in date_indices:
+		if date in source_data_df.index:
+			chart_data_df.loc[(username, date), cols] = source_data_df.loc[date, cols]
+	return chart_data_df.fillna(0)
+
+
 def comm_days_line_chart(comm_df, comm_days_line_chart_data, username):
 	cols = comm_days_line_chart_data.columns
 	user_xs = comm_days_line_chart_data.xs(username)
@@ -99,42 +111,48 @@ def generate_report_variables(username, report_variables, comm_df, date_indices)
 
 def generate_report_data(usernames, date_indices, PROJ_ROOT):
 	# Get DataSets:
-	# 	Check that the datasets exist, else call for them
 	interim_data_path = os.path.join(PROJ_ROOT,
 									"data",
 									"interim")
 	report_data_path = os.path.join(PROJ_ROOT,
 									"reports",
 									"report_variables")
-	multi_index = pd.MultiIndex.from_product([usernames, date_indices], names=['usernames', 'date'])
-	# report_date_multi_index = pd.MultiIndex.from_product([usernames, date_indices[-1]], names=['usernames', 'date'])
 
+	# Initialize the chart data dataframes
+	multi_index = pd.MultiIndex.from_product([usernames, date_indices], names=['usernames', 'date'])
 	comm_pie_chart_cols = ['risky_percent', 'neutral_percent', 'supportive_percent', 'unrated_percent']
 	comm_pie_chart_data = pd.DataFrame(np.nan, index=usernames, columns=comm_pie_chart_cols)
 	comm_days_line_chart_cols = ['total_comm_days', 'risky_comm_days', 'supportive_comm_days']
 	comm_days_line_chart_data = pd.DataFrame(np.nan, index=multi_index, columns=comm_days_line_chart_cols)
-	comm_vol_line_chart_cols = ['total_comm', 'risky_comm', 'neutral_comm', 'supportive_comm', 'unrated_comm']
-	comm_vol_bar_chart_data = pd.DataFrame(np.nan, index=multi_index, columns=comm_vol_line_chart_cols)
+	comm_vol_bar_chart_cols = ['total_comm', 'risky_comm', 'neutral_comm', 'supportive_comm', 'unrated_comm']
+	comm_vol_bar_chart_data = pd.DataFrame(np.nan, index=multi_index, columns=comm_vol_bar_chart_cols)
+	loc_days_bar_chart_cols = ['days_w_risky_loc_visits']
+	loc_days_bar_chart_data = pd.DataFrame(np.nan, index=multi_index, columns=loc_days_bar_chart_cols)
 	report_variables = {}
 
 	report_date = max(date_indices).date()
 
+	# Cycle through each user, populating the chart data dataframes
 	for username in usernames:
-		interim_data_file_path = os.path.join(interim_data_path, 'week_comm_log_df_' + username + '.pkl')
-		weekly_comm_df = pd.read_pickle(interim_data_file_path)
+		interim_comm_data_file_path = os.path.join(interim_data_path, 'week_comm_log_df_' + username + '.pkl')
+		weekly_comm_df = pd.read_pickle(interim_comm_data_file_path)
+		interim_loc_data_file_path = os.path.join(interim_data_path, 'week_loc_log_df_' + username + '.pkl')
+		weekly_loc_log_df = pd.read_pickle(interim_loc_data_file_path)
 
 		comm_pie_chart_data = comm_pie_chart(weekly_comm_df, comm_pie_chart_data, username, report_date - dt.timedelta(7))
-		comm_days_line_chart_data = comm_days_line_chart(weekly_comm_df, comm_days_line_chart_data, username)
-		comm_vol_bar_chart_data = comm_vol_line_chart(weekly_comm_df, comm_vol_bar_chart_data, username)
+		comm_days_line_chart_data = multi_index_chart_data(weekly_comm_df, comm_days_line_chart_data, username)
+		comm_vol_bar_chart_data = multi_index_chart_data(weekly_comm_df, comm_vol_bar_chart_data, username)
+		loc_days_bar_chart_data = multi_index_chart_data(weekly_loc_log_df, loc_days_bar_chart_data, username)
 		report_variables = generate_report_variables(username, report_variables, weekly_comm_df, date_indices)
 
 	comm_pie_chart_data.to_pickle(os.path.join(report_data_path, 'comm_pie_chart_data.pkl'))
 	comm_days_line_chart_data.to_pickle(os.path.join(report_data_path, 'comm_days_line_chart_data.pkl'))
-	comm_vol_bar_chart_data.to_pickle(os.path.join(report_data_path, 'comm_vol_line_chart_data.pkl'))
+	comm_vol_bar_chart_data.to_pickle(os.path.join(report_data_path, 'comm_vol_bar_chart_data.pkl'))
+	loc_days_bar_chart_data.to_pickle(os.path.join(report_data_path, 'loc_days_bar_chart_data.pkl'))
 	with open(os.path.join(report_data_path, 'report_variables.txt'), 'w') as file:
 		file.write(json.dumps(report_variables))
 
-	# print(comm_pie_chart_data.index)
-	# print(comm_pie_chart_data)
+	# print(loc_days_bar_chart_data.index)
+	# print(loc_days_bar_chart_data)
 	# print(report_variables)
-	return comm_pie_chart_data, comm_days_line_chart_data, comm_vol_bar_chart_data, report_variables
+	return comm_pie_chart_data, comm_days_line_chart_data, comm_vol_bar_chart_data, loc_days_bar_chart_data, report_variables

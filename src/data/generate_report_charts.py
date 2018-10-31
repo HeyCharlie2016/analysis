@@ -171,3 +171,41 @@ def comm_pie_chart(usernames, date_index, comm_pie_chart_data, report_chart_path
 		filename = 'comm_pie_chart' + '-' + username + '.png'
 		filepath = os.path.join(report_chart_path, filename)
 		fig.savefig(filepath, bbox_inches="tight")
+
+
+def loc_days_bar_chart(usernames, date_indices, loc_days_bar_chart_data, report_chart_path):
+	chart_colors = {'risky': '#e65c00',
+					'neutral': '#b3b3ff',
+					'unrated': '#C0C0C0',
+					'supportive': '#009900'}
+	label = 'Days with Risky Location Visits'
+	col = 'days_w_risky_loc_visits'
+	date_strings = dates_to_strings(date_indices)
+	color = '#e65c00'
+
+	for count, username in enumerate(usernames):
+		fig = plt.figure()
+		ax = fig.add_subplot(111)
+		data = loc_days_bar_chart_data.xs(username)[min(date_indices):max(date_indices)]
+		ax.bar(date_strings, data[col], 0.7, color=color, label=label)
+		for k, j in enumerate(data[col]):
+			if j > 0:
+				ax.annotate(int(j), xy=(date_strings[k], j), fontsize=14, va='bottom', ha='center')
+
+		top = 7.9
+		ax.set_ylim(bottom=0, top=top)
+		plt.yticks(np.arange(0, top, 2), fontsize=14)
+		plt.xlabel('Week of:', fontsize=14)
+		plt.ylabel(label, fontsize=14)
+		ax.annotate("No Risky Location Visits", xy=(date_strings[1], top / 2), fontsize=14, va='center', ha='left')
+
+		plt.xticks(date_strings, fontsize=14, rotation='30')
+		ax.spines['right'].set_visible(False)
+		ax.spines['top'].set_visible(False)
+
+		# handles, labels = ax.get_legend_handles_labels()
+		# ax.legend(handles[::-1], labels[::-1], loc=2, bbox_to_anchor=(1, 1), frameon=False, fontsize=14)
+
+		filename = 'days_w_risky_loc_chart' + '-' + username + '.png'
+		filepath = os.path.join(report_chart_path, filename)
+		fig.savefig(filepath, bbox_inches="tight")
