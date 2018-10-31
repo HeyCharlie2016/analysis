@@ -7,6 +7,8 @@ import database_query
 import user_df_setup
 import contacts_df_setup
 import comm_df_analyses
+import locations_df_setup
+import location_df_analyses
 
 
 def check_interim_data(usernames, max_report_date, interim_data_file_path, positives):
@@ -79,7 +81,9 @@ def refresh_user_data(usernames, PROJ_ROOT, max_report_date):
 
         comm_df_analyses.comm_df_setup(username, users_df, contacts_df, raw_data_path,
                                                          interim_data_path)
-        # TODO Mirror functions for locations (TBD, testing architecture for downstream issues)
+        locations_df = locations_df_setup.locations_df_setup(username, users_df, raw_data_path, interim_data_path)
+        location_df_analyses.location_df_setup(username, users_df, locations_df, raw_data_path,
+                                                         interim_data_path)
 
     # Confirm update
     users_df = user_df_setup.mark_refreshed(updated_usernames, users_df, os.path.join(interim_data_path, 'users_df.pkl'))

@@ -16,16 +16,13 @@ def get_all_usernames(users_df):
 def get_user_ids(users_df, usernames):
 	user_ids = []
 	missing_usernames = []
-	# print(users_df['username'].values)
 	for e in usernames:
 		if e in users_df['username'].values:
-			# print(e.type())
 			user_ids.append(users_df[users_df['username'] == e]['_id'].values[0].decode())
 		else:
 			print('Username not found: ' + e)
 			missing_usernames.append(e)
 	usernames = list(set(usernames) - set(missing_usernames))
-	print(usernames)
 	return user_ids, usernames
 
 
