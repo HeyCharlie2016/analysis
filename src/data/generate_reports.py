@@ -41,7 +41,7 @@ def generate_date_indices():
 	# end = last_monday + dt.timedelta(7)
 	# original_method = pd.date_range(start, end, freq='7D')
 
-	new_method = pd.date_range(today - dt.timedelta(28), today + dt.timedelta(0), freq='W-MON')
+	new_method = pd.date_range(today - dt.timedelta(35), today + dt.timedelta(0), freq='W-MON')
 	# print('time indices comparison')
 	# print(originale_method)
 	print('Report Date Range')

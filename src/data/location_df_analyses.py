@@ -43,8 +43,9 @@ def add_weekly_totals(daily_loc_df, weekly_loc_df):
 	for i in columns:
 		col_name = 'days_w_' + i
 		weekly_loc_df[col_name] = activity_df[col_name]
-	# print(weekly_loc_df.head())
-	return weekly_loc_df
+	# print(daily_loc_df)
+	print(weekly_loc_df[['risky_loc_visits', 'days_w_risky_loc_visits']])
+	return weekly_loc_df.fillna(0)
 
 
 def add_change_values(weekly_loc_df):
@@ -156,7 +157,8 @@ def location_df_setup(username, users_df, locations_df, raw_data_path, interim_d
 	location_visits_df = create_interim_loc_data(username, users_df, locations_df, raw_data_path, interim_data_path)
 	daily_loc_log_df = time_bucket_visits(username, users_df, location_visits_df, interim_data_path, 'day')
 	weekly_loc_log_df = time_bucket_visits(username, users_df, location_visits_df, interim_data_path, 'week')
-
+	# print('columns')
+	# print(weekly_loc_log_df.columns)
 	# These functions don't write to files
 	weekly_loc_log_df = add_weekly_totals(daily_loc_log_df, weekly_loc_log_df)
 	weekly_loc_log_df = utils.add_weekly_highest_day(daily_loc_log_df,
@@ -167,4 +169,7 @@ def location_df_setup(username, users_df, locations_df, raw_data_path, interim_d
 
 	interim_data_file_path = os.path.join(interim_data_path, 'week_loc_log_df_' + username + '.pkl')
 	weekly_loc_log_df.to_pickle(interim_data_file_path)
-	print(weekly_loc_log_df.head())
+	# print(weekly_loc_log_df.head())
+	#
+	# print(username)
+	# print(weekly_loc_log_df['days_w_risky_loc_visits'])
