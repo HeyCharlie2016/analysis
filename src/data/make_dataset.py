@@ -3,12 +3,21 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 
-import database_query
-import user_df_setup
-import contacts_df_setup
-import comm_df_analyses
-import locations_df_setup
-import location_df_analyses
+import sys
+# add the 'src' directory as one where we can import modules
+PROJ_ROOT = os.path.join(__file__,
+                         os.pardir,
+                         os.pardir,
+                         os.pardir)
+src_dir = os.path.join(PROJ_ROOT, "src")
+sys.path.append(src_dir)
+
+from data import database_query
+from data import user_df_setup
+from data import contacts_df_setup
+from data import comm_df_analyses
+from data import locations_df_setup
+from data import location_df_analyses
 
 
 def check_interim_data(usernames, max_report_date, interim_data_file_path, positives):
@@ -43,13 +52,7 @@ def check_interim_data(usernames, max_report_date, interim_data_file_path, posit
 
 
 def refresh_user_data(usernames, PROJ_ROOT, max_report_date):
-    #
-    # PROJ_ROOT = os.path.join(__file__,
-    #                          os.pardir,
-    #                          os.pardir,
-    #                          os.pardir)
-    #
-    # PROJ_ROOT = os.path.abspath(PROJ_ROOT)
+
     raw_data_path = os.path.join(PROJ_ROOT,
                                  "data",
                                  "raw")
