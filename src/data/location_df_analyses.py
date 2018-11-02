@@ -3,9 +3,21 @@ import datetime as dt
 import numpy as np
 import os
 
-import utils
+# # It doesn't want to import utils...
+# from data.utils import add_weekly_highest_day
+# from data.utils import add_days_change
+# from data.utils import add_change_values
 
-#
+import sys
+# add the 'src' directory as one where we can import modules
+PROJ_ROOT = os.path.join(__file__,
+						 os.pardir,
+						 os.pardir,
+						 os.pardir)
+src_dir = os.path.join(PROJ_ROOT, "src")
+sys.path.append(src_dir)
+from data import utils
+
 # def add_weekly_highest_day(daily_loc_df, weekly_loc_df):
 # 	cols = ['risky_loc_visits', 'total_loc_visits']
 # 	weekly_loc_df = utils.add_weekly_highest_day(daily_loc_df, weekly_loc_df, cols)

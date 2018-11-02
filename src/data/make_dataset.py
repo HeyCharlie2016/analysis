@@ -20,7 +20,7 @@ from data import locations_df_setup
 from data import location_df_analyses
 
 
-def check_interim_data(usernames, max_report_date, interim_data_file_path, positives):
+def check_interim_data(usernames, max_date, interim_data_file_path, positives):
     # This is effectively checking if the data exists and is current.
     # Returns a list of usernames that need to be updated
     # Should probably add in checks for raw data files
@@ -42,7 +42,7 @@ def check_interim_data(usernames, max_report_date, interim_data_file_path, posit
         if pd.isnull(users_df['refresh_time'][e]):
             users_needing_updating.append(e)
             users_with_data.remove(e)
-        elif (users_df['refresh_time'][e] < max_report_date):
+        elif (users_df['refresh_time'][e] < max_date):
             users_needing_updating.append(e)
             users_with_data.remove(e)
     if positives == 1:
@@ -51,7 +51,7 @@ def check_interim_data(usernames, max_report_date, interim_data_file_path, posit
         return users_needing_updating
 
 
-def refresh_user_data(usernames, PROJ_ROOT, max_report_date):
+def refresh_user_data(usernames, PROJ_ROOT, max_date):
 
     raw_data_path = os.path.join(PROJ_ROOT,
                                  "data",
@@ -61,7 +61,7 @@ def refresh_user_data(usernames, PROJ_ROOT, max_report_date):
                                      "interim")
     # TODO retain some functionality for pulling all the dataset: force re-pull for the list, and force re-pull all
     usernames_to_update = check_interim_data(usernames,
-                                             max_report_date,
+                                             max_date,
                                              os.path.join(interim_data_path, 'users_df.pkl'),
                                              0)
     if len(usernames_to_update) == 0:
@@ -90,7 +90,7 @@ def refresh_user_data(usernames, PROJ_ROOT, max_report_date):
 
     # Confirm update
     users_df = user_df_setup.mark_refreshed(updated_usernames, users_df, os.path.join(interim_data_path, 'users_df.pkl'))
-    usernames = check_interim_data(usernames, max_report_date, os.path.join(interim_data_path, 'users_df.pkl'), 1)
+    usernames = check_interim_data(usernames, max_date, os.path.join(interim_data_path, 'users_df.pkl'), 1)
     print('Dataset current for:')
     print(usernames)
     return usernames

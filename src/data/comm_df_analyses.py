@@ -3,7 +3,20 @@ import datetime as dt
 import numpy as np
 import os
 
-import utils
+# # It doesn't want to import utils...
+# from data.utils import add_weekly_highest_day
+# from data.utils import add_days_change
+
+import sys
+# add the 'src' directory as one where we can import modules
+PROJ_ROOT = os.path.join(__file__,
+						 os.pardir,
+						 os.pardir,
+						 os.pardir)
+src_dir = os.path.join(PROJ_ROOT, "src")
+sys.path.append(src_dir)
+from data import utils
+
 
 def comm_activity_columns():
     activity_columns = []
