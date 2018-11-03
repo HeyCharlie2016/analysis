@@ -28,8 +28,8 @@ def get_user_ids(users_df, usernames):
 
 def make_raw_users_df(db, data_file_path, usernames):
 	# Pulling the current username log, we shouldn't need to worry about filesize for this one but can change later
-	# users_df = pd.DataFrame(list(db.users.find()))
-	users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
+	users_df = pd.DataFrame(list(db.users.find()))
+	# users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
 	users_df['_id'] = users_df['_id'].astype('|S')
 	users_df.to_pickle(data_file_path)
 	return users_df

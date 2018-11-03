@@ -32,18 +32,9 @@ def add_weekly_highest_day(daily_df, weekly_df, labels):
 	return weekly_df
 
 
-def add_days_change(weekly_df, col):
-	# Get (# of Days) Change in Days with Risky Interactions
-	# col = 'risky_comm_days'
-	current_days = weekly_df[col][1:]
-	prev_days = weekly_df[col].shift(1)
-	weekly_df['change_in_' + col] = (current_days - prev_days)
-	return weekly_df
-
-
 def add_change_values(df, cols):
 	for col in cols:
 		current_values = df[col][1:]
 		prev_values = df[col].shift(1)
-		df[col] = (current_values - prev_values)
+		df['change_in_' + col] = (current_values - prev_values)
 	return df

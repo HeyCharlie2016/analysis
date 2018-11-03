@@ -117,12 +117,6 @@ def add_days_with_comm_by_type(daily_comm_df, weekly_comm_df):
     return weekly_comm_df
 
 
-# def add_weekly_highest_day(daily_comm_df, weekly_comm_df):
-#     cols = ['risky_comm', 'total_comm']
-#     weekly_com_df = utils.add_weekly_highest_day(daily_comm_df, weekly_comm_df, cols)
-#     return weekly_comm_df
-
-
 def time_bucket_comm(username, users_df, comm_df, interim_data_path, period):
     today = dt.date.today()
     date_created = users_df.loc[username, 'date_created']
@@ -186,7 +180,7 @@ def comm_df_setup(username, users_df, contacts_df, raw_data_path,
     weekly_comm_df = add_days_with_comm_by_type(daily_comm_df, weekly_comm_df)
     weekly_comm_df = add_percent_comm_for_each_type(weekly_comm_df)
     weekly_comm_df = add_percent_change_in_risky_interactions(weekly_comm_df)
-    weekly_comm_df = utils.add_days_change(weekly_comm_df, 'risky_comm_days')
+    weekly_comm_df = utils.add_change_values(weekly_comm_df, ['risky_comm_days'])
 
     interim_data_file_path = os.path.join(interim_data_path, 'week_comm_log_df_' + username + '.pkl')
     weekly_comm_df.to_pickle(interim_data_file_path)

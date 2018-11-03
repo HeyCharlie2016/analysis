@@ -18,11 +18,6 @@ src_dir = os.path.join(PROJ_ROOT, "src")
 sys.path.append(src_dir)
 from data import utils
 
-# def add_weekly_highest_day(daily_loc_df, weekly_loc_df):
-# 	cols = ['risky_loc_visits', 'total_loc_visits']
-# 	weekly_loc_df = utils.add_weekly_highest_day(daily_loc_df, weekly_loc_df, cols)
-# 	return weekly_loc_df
-
 
 def remove_duplicate_entries(user_loc_activity):
 	# Remove duplicate entries with same timestamp and loction
@@ -49,6 +44,10 @@ def add_weekly_totals(daily_loc_df, weekly_loc_df):
 		temp.columns = [col_name]
 		temp = temp.reset_index()
 		temp.index = temp['index'].apply(lambda x: x.left)
+		# print(data)
+		# print(weekly_loc_df.index)
+		# print(temp[col_name])
+		# print(activity_df)
 		temp[col_name] *= 1
 		activity_df[col_name] = temp[col_name]
 	activity_df = activity_df.fillna(0)
@@ -56,7 +55,7 @@ def add_weekly_totals(daily_loc_df, weekly_loc_df):
 		col_name = 'days_w_' + i
 		weekly_loc_df[col_name] = activity_df[col_name]
 	# print(daily_loc_df)
-	print(weekly_loc_df[['risky_loc_visits', 'days_w_risky_loc_visits']])
+	# print(weekly_loc_df[['risky_loc_visits', 'days_w_risky_loc_visits']])
 	return weekly_loc_df.fillna(0)
 
 
@@ -109,9 +108,10 @@ def time_bucket_visits(username, users_df, location_visits_df, interim_data_path
 	today = dt.date.today()
 	date_created = users_df.loc[username, 'date_created']
 	if period == 'day':
-		date_indices = pd.date_range(date_created, today + dt.timedelta(7), freq='D')
+		date_indices = pd.date_range(min(date_created, today - dt.timedelta(7)), today + dt.timedelta(7), freq='D')
 	elif period == 'week':
-		date_indices = pd.date_range(date_created, today + dt.timedelta(7), freq='W-MON')
+		date_indices = pd.date_range(min(date_created, today - dt.timedelta(7)), today + dt.timedelta(7), freq='W-MON')
+		# location_visits_df = location_visits_df.fillna(0)
 	# TODO: Assertion or something since this is user input?
 
 	columns = ['safe_loc_visits', 'risky_loc_visits', 'total_loc_visits']
@@ -169,16 +169,13 @@ def location_df_setup(username, users_df, locations_df, raw_data_path, interim_d
 	location_visits_df = create_interim_loc_data(username, users_df, locations_df, raw_data_path, interim_data_path)
 	daily_loc_log_df = time_bucket_visits(username, users_df, location_visits_df, interim_data_path, 'day')
 	weekly_loc_log_df = time_bucket_visits(username, users_df, location_visits_df, interim_data_path, 'week')
-	# print('columns')
-	# print(weekly_loc_log_df.columns)
+
 	# These functions don't write to files
 	weekly_loc_log_df = add_weekly_totals(daily_loc_log_df, weekly_loc_log_df)
 	weekly_loc_log_df = utils.add_weekly_highest_day(daily_loc_log_df,
 													weekly_loc_log_df,
 													['risky_loc_visits', 'total_loc_visits'])
-	weekly_loc_log_df = utils.add_days_change(weekly_loc_log_df, 'days_w_risky_loc_visits')
 	weekly_loc_log_df = utils.add_change_values(weekly_loc_log_df, ['risky_loc_visits', 'days_w_risky_loc_visits'])
-
 	interim_data_file_path = os.path.join(interim_data_path, 'week_loc_log_df_' + username + '.pkl')
 	weekly_loc_log_df.to_pickle(interim_data_file_path)
 	# print(weekly_loc_log_df.head())
