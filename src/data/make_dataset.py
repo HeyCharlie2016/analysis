@@ -18,6 +18,7 @@ from data import contacts_df_setup
 from data import comm_df_analyses
 from data import locations_df_setup
 from data import location_df_analyses
+from data import notifications_df_setup
 
 
 def check_interim_data(usernames, max_date, interim_data_file_path, positives):
@@ -68,7 +69,7 @@ def refresh_user_data(usernames, PROJ_ROOT, max_date):
         print('Data is up to date!')
         return usernames
     else:
-        print("updating data for:")
+        print("updating raw data for:")
         print(usernames_to_update)
         updated_usernames = database_query.pull_raw_data(usernames_to_update, raw_data_path)
         if not updated_usernames:
@@ -94,3 +95,24 @@ def refresh_user_data(usernames, PROJ_ROOT, max_date):
     print('Dataset current for:')
     print(usernames)
     return usernames
+
+
+def make_notification_data(users_df, usernames, PROJ_ROOT):
+
+    raw_data_path = os.path.join(PROJ_ROOT,
+                                 "data",
+                                 "raw")
+    interim_data_path = os.path.join(PROJ_ROOT,
+                                     "data",
+                                     "interim")
+    # users_df = pd.read_pickle(os.path.join(interim_data_path, 'users_df.pkl'))
+    database_query.make_raw_notifications_df(users_df, usernames, raw_data_path)
+    notifications_dict = {}
+    for username in usernames:
+        notifications_df = notifications_df_setup.notifications_df_setup(username,
+                                                                         users_df,
+                                                                         raw_data_path,
+                                                                         interim_data_path)
+        if notifications_df is not False:
+            notifications_dict[username] = notifications_df
+    return notifications_dict

@@ -17,6 +17,8 @@ def get_user_ids(users_df, usernames):
 	user_ids = []
 	missing_usernames = []
 	for e in usernames:
+		# print(e)
+		# if e in users_df['username'].values:
 		if e in users_df['username'].values:
 			user_ids.append(users_df[users_df['username'] == e]['_id'].values[0].decode())
 		else:
@@ -36,12 +38,12 @@ def make_raw_users_df(db, data_file_path, usernames):
 
 
 def update_raw_users_df(db, data_file_path, usernames):
-	users_df = pd.read_pickle(data_file_path)
+	raw_users_df = pd.read_pickle(data_file_path)
 	current_users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
 	current_users_df['_id'] = current_users_df['_id'].astype('|S')
-	users_df = users_df.combine_first(current_users_df)  # The union of the two, without duplicates
-	users_df.to_pickle(data_file_path)
-	return users_df
+	raw_users_df = raw_users_df.combine_first(current_users_df)  # The union of the two, without duplicates
+	raw_users_df.to_pickle(data_file_path)
+	return raw_users_df
 
 
 def make_raw_contacts_df(db, raw_data_path, user_ids):
@@ -91,12 +93,12 @@ def pull_raw_data(usernames, raw_data_path):
 	db = mongo_connect()
 	try:
 		# Check for if the file exists
-		users_df = update_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
+		raw_users_df = update_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
 	except:
 		print('Creating new users_df')
-		users_df = make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
+		raw_users_df = make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
 	# print(users_df.head(10))
-	[user_ids, usernames] = get_user_ids(users_df, usernames)  # Maybe overly complex? Checks if each exists.
+	[user_ids, usernames] = get_user_ids(raw_users_df, usernames)  # Maybe overly complex? Checks if each exists.
 	# print(user_ids)
 	# print(usernames)
 	try:
@@ -112,3 +114,15 @@ def pull_raw_data(usernames, raw_data_path):
 		print('Updated raw data for users:')
 		print(usernames)
 	return usernames
+
+
+def make_raw_notifications_df(users_df, usernames, raw_data_path):
+	raw_users_df = pd.read_pickle(os.path.join(raw_data_path, 'users_df.pkl'))
+	[user_ids, usernames] = get_user_ids(raw_users_df, usernames)
+	db = mongo_connect()
+	notifications_df = pd.DataFrame(list(db.notificationLog.find({'userId': {'$in': user_ids}})))
+	notifications_df.index = notifications_df['_id']
+	for e in user_ids:
+		user_notifications_df = notifications_df[notifications_df['userId'] == e]
+		data_file_path = os.path.join(raw_data_path, 'notifications_df_' + e + '.pkl')
+		user_notifications_df.to_pickle(data_file_path)

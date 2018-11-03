@@ -29,6 +29,7 @@ def user_df_setup(usernames, raw_data_path, interim_data_file_path):
 	except:
 		print('Interim users_df not found, generating new')
 		users_df = pd.DataFrame(np.nan, index=usernames, columns=['date_created', 'refresh_time'])
+		users_df.index.names = ['username']
 	raw_users_df = pd.read_pickle(raw_data_path)
 	# print(usernames)
 	# users_needing_entries = list(set(usernames) - set(users_df.index))  # Users that don't exist
