@@ -29,12 +29,20 @@ def multi_index_chart_data(source_data_df, chart_data_df, username):
 	# TODO: source_data_df gets a [nan] entry randomly inserted when accessed by this function
 	# the following line helps but it is still a listr
 	source_data_df = source_data_df.fillna(0)
+	# for e, i in enumerate(source_data_df):
+	# 	try:
+	# 		source_data_df[i] = e[0]
+	# 	except ValueError:
+	# 		pass
+		#
+		# if isint(e[0]):
+		# 	source_data_df[i] = e[0]
 
 	user_xs = chart_data_df.xs(username)
 	date_indices = user_xs.index
 	for date in date_indices:
 		if date in source_data_df.index:
-			chart_data_df.loc[(username, date), cols] = source_data_df.loc[date, cols]
+			chart_data_df.loc[(username, date), cols] = source_data_df.loc[date, cols][0]
 
 	# chart_data_df.replace('[nan]', 0) # doesn't seem to be working - because it's not NaN, it's [nan]
 	return chart_data_df.fillna(0)

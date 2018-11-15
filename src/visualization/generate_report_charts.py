@@ -126,47 +126,48 @@ def comm_pie_chart(usernames, date_index, comm_pie_chart_data, report_chart_path
 		data = comm_pie_chart_data.xs(username)
 
 		if not np.isnan(data[cols[0]]):
-			wedges, texts = ax.pie(data, explode=explode, colors=colors)
-			kw = dict(xycoords='data', textcoords='data', zorder=0, va="center",
-					  arrowprops=dict(facecolor='silver', arrowstyle="-"))
-			low_count = 0
-			for i, p in enumerate(wedges):
-				if data[i] > 0.02:
-					ang = (p.theta2 - p.theta1) / 2. + p.theta1
-					y = np.sin(np.deg2rad(ang))
-					x = np.cos(np.deg2rad(ang))
-					horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
-					connectionstyle = "angle,angleA=0,angleB={}".format(ang)
-					kw["arrowprops"].update({"connectionstyle": connectionstyle})
+			if sum(data) > 0:
+				wedges, texts = ax.pie(data, explode=explode, colors=colors)
+				kw = dict(xycoords='data', textcoords='data', zorder=0, va="center",
+						  arrowprops=dict(facecolor='silver', arrowstyle="-"))
+				low_count = 0
+				for i, p in enumerate(wedges):
+					if data[i] > 0.02:
+						ang = (p.theta2 - p.theta1) / 2. + p.theta1
+						y = np.sin(np.deg2rad(ang))
+						x = np.cos(np.deg2rad(ang))
+						horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
+						connectionstyle = "angle,angleA=0,angleB={}".format(ang)
+						kw["arrowprops"].update({"connectionstyle": connectionstyle})
 
-					text = labels[i] + '\n' + '{:.0%}'.format(data[i])
-					text_x = x + (1 - x) * 2 / 3 * np.sign(
-						x)  # setting the x coordinate of the text-box to be halfway between the cahrt and x = 1 (or -1)
-					if abs(text_x) > 1:
-						text_x = np.sign(x)
-					ax.annotate(text, xy=(x, y), xytext=(text_x, 1.2 * y),
-								horizontalalignment=horizontalalignment, **kw, fontsize=14)
-				else:
-					text = labels[i] + ': ' + '{:.0%}'.format(data[i])
-					ax.annotate(text, xy=(1.5, 0.2 * low_count - 1), fontsize=14, ha='center')
-					low_count += 1
-			ax.axis('equal')
-		else:
-			ax.annotate("No Communication last week", xy=(0.5, 0.5), fontsize=14, va='center',
-						ha='center')
-			ax.spines['left'].set_visible(False)
-			ax.spines['right'].set_visible(False)
-			ax.spines['top'].set_visible(False)
-			ax.spines['bottom'].set_visible(False)
-			plt.tick_params(
-				#             axis='x',          # changes apply to the x-axis
-				which='both',  # both major and minor ticks are affected
-				bottom=False,  # ticks along the bottom edge are off
-				top=False,  # ticks along the top edge are off
-				labelbottom=False,
-				right=False,
-				left=False,
-				labelleft=False)
+						text = labels[i] + '\n' + '{:.0%}'.format(data[i])
+						text_x = x + (1 - x) * 2 / 3 * np.sign(
+							x)  # setting the x coordinate of the text-box to be halfway between the cahrt and x = 1 (or -1)
+						if abs(text_x) > 1:
+							text_x = np.sign(x)
+						ax.annotate(text, xy=(x, y), xytext=(text_x, 1.2 * y),
+									horizontalalignment=horizontalalignment, **kw, fontsize=14)
+					else:
+						text = labels[i] + ': ' + '{:.0%}'.format(data[i])
+						ax.annotate(text, xy=(1.5, 0.2 * low_count - 1), fontsize=14, ha='center')
+						low_count += 1
+				ax.axis('equal')
+			else:
+				ax.annotate("No Communication last week", xy=(0.5, 0.5), fontsize=14, va='center',
+							ha='center')
+				ax.spines['left'].set_visible(False)
+				ax.spines['right'].set_visible(False)
+				ax.spines['top'].set_visible(False)
+				ax.spines['bottom'].set_visible(False)
+				plt.tick_params(
+					#             axis='x',          # changes apply to the x-axis
+					which='both',  # both major and minor ticks are affected
+					bottom=False,  # ticks along the bottom edge are off
+					top=False,  # ticks along the top edge are off
+					labelbottom=False,
+					right=False,
+					left=False,
+					labelleft=False)
 
 		filename = 'comm_pie_chart' + '-' + username + '.png'
 		filepath = os.path.join(report_chart_path, filename)
@@ -197,7 +198,8 @@ def loc_days_bar_chart(usernames, date_indices, loc_days_bar_chart_data, report_
 		plt.yticks(np.arange(0, top, 2), fontsize=14)
 		plt.xlabel('Week of:', fontsize=14)
 		plt.ylabel(label, fontsize=14)
-		ax.annotate("No Risky Location Visits", xy=(date_strings[1], top / 2), fontsize=14, va='center', ha='left')
+		if sum(data[col]) == 0:
+			ax.annotate("No Risky Location Visits", xy=(date_strings[1], top / 2), fontsize=14, va='center', ha='left')
 
 		plt.xticks(date_strings, fontsize=14, rotation='30')
 		ax.spines['right'].set_visible(False)
