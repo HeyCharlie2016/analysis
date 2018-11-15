@@ -42,7 +42,7 @@ def multi_index_chart_data(source_data_df, chart_data_df, username):
 	date_indices = user_xs.index
 	for date in date_indices:
 		if date in source_data_df.index:
-			chart_data_df.loc[(username, date), cols] = source_data_df.loc[date, cols][0]
+			chart_data_df.loc[(username, date), cols] = source_data_df.loc[date, cols]
 
 	# chart_data_df.replace('[nan]', 0) # doesn't seem to be working - because it's not NaN, it's [nan]
 	return chart_data_df.fillna(0)

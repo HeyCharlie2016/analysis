@@ -120,7 +120,7 @@ def time_bucket_visits(username, users_df, location_visits_df, interim_data_path
 	activity_df = pd.DataFrame(np.nan, date_indices, columns=columns)
 
 	if len(location_visits_df) == 0:
-		activity_df = {}
+		period_loc_visits_df = activity_df
 	else:
 		for i in ['safe', 'risky', 'total']:
 			col_name = i + '_loc_visits'
@@ -133,7 +133,7 @@ def time_bucket_visits(username, users_df, location_visits_df, interim_data_path
 			temp = temp.reset_index()
 			temp.index = temp['index'].apply(lambda x: x.left)
 			activity_df[col_name] = temp[col_name]
-	period_loc_visits_df = activity_df.fillna(0)
+		period_loc_visits_df = activity_df.fillna(0)
 	# print(username)
 	# print(period_loc_visits_df.head())
 	# TODO: reduce how often the datafile is being over written
