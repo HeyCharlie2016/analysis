@@ -123,7 +123,9 @@ def time_bucket_comm(username, users_df, comm_df, interim_data_path, period):
     if period == 'day':
         date_indices = pd.date_range(date_created, today + dt.timedelta(7), freq='D')
     elif period == 'week':
-        date_indices = pd.date_range(date_created, today + dt.timedelta(7), freq='W-MON')
+        date_indices = pd.date_range(date_created - dt.timedelta(date_created.weekday()),
+                                     today + dt.timedelta(7),
+                                     freq='W-MON')
     # TODO: Assertion or something since this is user input?
     activity_columns = comm_activity_columns()
     comm_activity_df = pd.DataFrame(np.nan, index=date_indices, columns=activity_columns)

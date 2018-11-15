@@ -110,7 +110,9 @@ def time_bucket_visits(username, users_df, location_visits_df, interim_data_path
 	if period == 'day':
 		date_indices = pd.date_range(min(date_created, today - dt.timedelta(7)), today + dt.timedelta(7), freq='D')
 	elif period == 'week':
-		date_indices = pd.date_range(min(date_created, today - dt.timedelta(7)), today + dt.timedelta(7), freq='W-MON')
+		date_indices = pd.date_range(date_created - dt.timedelta(date_created.weekday()),
+									 today + dt.timedelta(7),
+									 freq='W-MON')
 		# location_visits_df = location_visits_df.fillna(0)
 	# TODO: Assertion or something since this is user input?
 
