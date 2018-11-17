@@ -77,7 +77,7 @@ if __name__ == '__main__':
 	report_chart_path = os.path.join(PROJ_ROOT,
 									"reports",
 									"figures")
-	generate_report_charts.comm_days_line_chart(usernames, date_indices, comm_days_line_chart_data, report_chart_path)
+	generate_report_charts.comm_days_line_chart(usernames, date_indices[:-1], comm_days_line_chart_data, report_chart_path)
 	generate_report_charts.comm_vol_bar_chart(usernames, date_indices[:-1], comm_vol_bar_chart_data, report_chart_path)
 	generate_report_charts.comm_pie_chart(usernames, date_indices[-2], comm_pie_chart_data, report_chart_path)
 	generate_report_charts.loc_days_bar_chart(usernames, date_indices[:-1], loc_days_bar_chart_data, report_chart_path)

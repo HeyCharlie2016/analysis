@@ -19,7 +19,6 @@ def comm_days_line_chart(usernames, date_indices, comm_days_line_chart_data, rep
 		fig = plt.figure()
 		ax = fig.add_subplot(111)
 
-		date_indicies = date_indices.tolist()
 		colors = ['#C0C0C0', '#00cc00', '#ff6600']
 		cols = ['total_comm_days', 'risky_comm_days', 'supportive_comm_days']
 		labels = ['Any Comm', 'Risky Comm', 'Supportive Comm']
@@ -28,15 +27,19 @@ def comm_days_line_chart(usernames, date_indices, comm_days_line_chart_data, rep
 			data = comm_days_line_chart_data.xs(username)
 		else:
 			data = comm_days_line_chart_data
+
+		date_range = list(set(date_indices) & set(data.index))
+		# date_range = date_range.tolist()
+
 		for i, c in enumerate(data[cols][:-1]):
 			ax.plot(data[c][:-1], label=labels[i], linewidth=5.0,
 					marker='o', linestyle=linestyle[i])
 			for k, j in enumerate(data[c][:-1]):
 				if j > 0:
 					ax.annotate(int(j), xy=(data[c][:-1].index[k],
-											j + max(0.2, j / 15)), fontsize=14, va='bottom',
+								j + max(0.2, j / 15)), fontsize=14, va='bottom',
 								ha='center')
-		plt.xticks(date_indicies[:-1], fontsize=14, rotation='30')
+		plt.xticks(date_range, fontsize=14, rotation='30')
 		ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
 
 		top = 7.9
@@ -60,7 +63,7 @@ def comm_vol_bar_chart(usernames, date_indices, comm_vol_bar_chart_data, report_
 					'supportive': '#009900'}
 	labels = ['Risky', 'Neutral', 'Supportive', 'Unrated']
 	cols = ['risky_comm', 'neutral_comm', 'supportive_comm', 'unrated_comm']
-	date_strings = dates_to_strings(date_indices)
+	# date_strings = dates_to_strings(date_indices)
 	colors = []
 	for k in labels:
 		colors.append(chart_colors[k.lower()])
@@ -71,8 +74,11 @@ def comm_vol_bar_chart(usernames, date_indices, comm_vol_bar_chart_data, report_
 		if isinstance(comm_vol_bar_chart_data.index, pd.core.index.MultiIndex):
 			data = comm_vol_bar_chart_data.xs(username)[min(date_indices):max(date_indices)]
 		else:
-			data = comm_vol_bar_chart_data
+			data = comm_vol_bar_chart_data[cols]
 			print('Jupyter Notebook')
+
+		date_range = list(set(date_indices) & set(data.index))
+		date_strings = dates_to_strings(date_range)
 		rolling_total = pd.DataFrame(0, data[:-1].index, columns=['temp'])
 
 		for i, col in enumerate(data[cols]):
@@ -189,7 +195,7 @@ def loc_days_bar_chart(usernames, date_indices, loc_days_bar_chart_data, report_
 					'supportive': '#009900'}
 	label = 'Days with Risky Location Visits'
 	col = 'days_w_risky_loc_visits'
-	date_strings = dates_to_strings(date_indices)
+	# date_strings = dates_to_strings(date_indices)
 	color = '#e65c00'
 
 	for count, username in enumerate(usernames):
@@ -200,6 +206,10 @@ def loc_days_bar_chart(usernames, date_indices, loc_days_bar_chart_data, report_
 			data = loc_days_bar_chart_data.xs(username)[min(date_indices):max(date_indices)]
 		else:
 			data = loc_days_bar_chart_data
+
+		date_range = list(set(date_indices) & set(data.index))
+		date_strings = dates_to_strings(date_range)
+
 		ax.bar(date_strings, data[col], 0.7, color=color, label=label)
 		for k, j in enumerate(data[col]):
 			if j > 0:
