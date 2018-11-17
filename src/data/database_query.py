@@ -2,6 +2,7 @@ from pymongo import MongoClient
 import pandas as pd
 import datetime as dt
 import os
+import numpy as np
 
 
 def mongo_connect():
@@ -22,8 +23,8 @@ def get_user_ids(users_df, usernames):
 		if e in users_df['username'].values:
 			user_ids.append(users_df[users_df['username'] == e]['_id'].values[0].decode())
 		else:
-			print('Username not found: ' + e)
 			missing_usernames.append(e)
+	print('Username not found: ' + str(missing_usernames))
 	usernames = list(set(usernames) - set(missing_usernames))
 	return user_ids, usernames
 
@@ -73,16 +74,25 @@ def make_raw_comm_log_df(db, raw_data_path, user_ids):
 
 def make_raw_location_df(db, raw_data_path, user_ids):
 	locations_df = pd.DataFrame(list(db.geographicLocation.find({'userId': {'$in': user_ids}})))
-	locations_df['_id'] = locations_df['_id'].astype('|S')
+	if len(locations_df) > 0:
+		locations_df['_id'] = locations_df['_id'].astype('|S')
+	else:
+		locations_df = pd.DataFrame('', index=[], columns=['_id', 'type', 'userId'])
 	for e in user_ids:
 		user_locations_df = locations_df[locations_df['userId'] == e]
 		data_file_path = os.path.join(raw_data_path, 'locations_df_' + e + '.pkl')
 		user_locations_df.to_pickle(data_file_path)
+	# else:
+	# 	return False
 
 
 def make_raw_location_log_df(db, raw_data_path, user_ids):
 	location_log_df = pd.DataFrame(list(db.locationLog.find({'userId': {'$in': user_ids}})))
-	location_log_df.index = location_log_df['_id']
+	if len(location_log_df) > 0:
+		location_log_df.index = location_log_df['_id']
+	else:
+		cols = ['userId', 'locationId', 'timestamp', 'type']
+		location_log_df = pd.DataFrame('', index=[], columns=cols)
 	for e in user_ids:
 		user_location_log_df = location_log_df[location_log_df['userId'] == e]
 		data_file_path = os.path.join(raw_data_path, 'location_log_df_' + e + '.pkl')

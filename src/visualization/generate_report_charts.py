@@ -24,8 +24,10 @@ def comm_days_line_chart(usernames, date_indices, comm_days_line_chart_data, rep
 		cols = ['total_comm_days', 'risky_comm_days', 'supportive_comm_days']
 		labels = ['Any Comm', 'Risky Comm', 'Supportive Comm']
 		linestyle = ['solid', 'dashed', 'dotted']
-
-		data = comm_days_line_chart_data.xs(username)
+		if isinstance(comm_days_line_chart_data.index, pd.core.index.MultiIndex):
+			data = comm_days_line_chart_data.xs(username)
+		else:
+			data = comm_days_line_chart_data
 		for i, c in enumerate(data[cols][:-1]):
 			ax.plot(data[c][:-1], label=labels[i], linewidth=5.0,
 					marker='o', linestyle=linestyle[i])
@@ -66,7 +68,11 @@ def comm_vol_bar_chart(usernames, date_indices, comm_vol_bar_chart_data, report_
 	for count, username in enumerate(usernames):
 		fig = plt.figure()
 		ax = fig.add_subplot(111)
-		data = comm_vol_bar_chart_data.xs(username)[min(date_indices):max(date_indices)]
+		if isinstance(comm_vol_bar_chart_data.index, pd.core.index.MultiIndex):
+			data = comm_vol_bar_chart_data.xs(username)[min(date_indices):max(date_indices)]
+		else:
+			data = comm_vol_bar_chart_data
+			print('Jupyter Notebook')
 		rolling_total = pd.DataFrame(0, data[:-1].index, columns=['temp'])
 
 		for i, col in enumerate(data[cols]):
@@ -122,8 +128,10 @@ def comm_pie_chart(usernames, date_index, comm_pie_chart_data, report_chart_path
 		colors = []
 		for k in labels:
 			colors.append(chart_colors[k.lower()])
-
-		data = comm_pie_chart_data.xs(username)
+		if len(comm_pie_chart_data.index) > 1:
+			data = comm_pie_chart_data.loc[username]
+		else:
+			data = comm_pie_chart_data
 
 		if not np.isnan(data[cols[0]]):
 			if sum(data) > 0:
@@ -187,7 +195,11 @@ def loc_days_bar_chart(usernames, date_indices, loc_days_bar_chart_data, report_
 	for count, username in enumerate(usernames):
 		fig = plt.figure()
 		ax = fig.add_subplot(111)
-		data = loc_days_bar_chart_data.xs(username)[min(date_indices):max(date_indices)]
+		# data = loc_days_bar_chart_data.xs(username)[min(date_indices):max(date_indices)]
+		if isinstance(loc_days_bar_chart_data.index, pd.core.index.MultiIndex):
+			data = loc_days_bar_chart_data.xs(username)[min(date_indices):max(date_indices)]
+		else:
+			data = loc_days_bar_chart_data
 		ax.bar(date_strings, data[col], 0.7, color=color, label=label)
 		for k, j in enumerate(data[col]):
 			if j > 0:

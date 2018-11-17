@@ -134,7 +134,7 @@ def generate_report_data(usernames, date_indices, PROJ_ROOT):
 		loc_days_bar_chart_data = multi_index_chart_data(weekly_loc_log_df, loc_days_bar_chart_data, username)
 		report_variables = generate_report_variables(username, report_variables, weekly_comm_df, weekly_loc_log_df,
 													 date_indices, locations_df)
-
+		# TODO add csv data readout here: user_data = weekly_comm_df[columns] + weekly_loc_log_df[columns] + report_variables[columns]
 	comm_pie_chart_data.to_pickle(os.path.join(report_data_path, 'comm_pie_chart_data.pkl'))
 	comm_days_line_chart_data.to_pickle(os.path.join(report_data_path, 'comm_days_line_chart_data.pkl'))
 	comm_vol_bar_chart_data.to_pickle(os.path.join(report_data_path, 'comm_vol_bar_chart_data.pkl'))

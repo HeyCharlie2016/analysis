@@ -69,13 +69,13 @@ def refresh_user_data(usernames, PROJ_ROOT, max_date):
         print('Data is up to date!')
         return usernames
     else:
-        print("updating raw data for:")
+        print("Updating raw data for:")
         print(usernames_to_update)
         updated_usernames = database_query.pull_raw_data(usernames_to_update, raw_data_path)
         if not updated_usernames:
             print('No data updated, check input usernames')
         else:
-            print("Updated data for:")
+            print("Updated raw data for:")
             print(updated_usernames)
         users_df = user_df_setup.user_df_setup(updated_usernames,
                                            os.path.join(raw_data_path, 'users_df.pkl'),
