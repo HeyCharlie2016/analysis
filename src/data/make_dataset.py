@@ -22,9 +22,9 @@ from data import notifications_df_setup
 
 
 def check_interim_data(usernames, max_date, interim_data_file_path, positives):
-    # This is effectively checking if the data exists and is current.
+    # Checks if the data exists and is current.
     # Returns a list of usernames that need to be updated
-    # Should probably add in checks for raw data files
+    # Should probably add in checks for individual raw data files
 
     # Currently, the raw users_df.pkl is storing all the users in the db
     #   the interim users_df.pkl has only entries for those with updated interim data files
@@ -61,6 +61,7 @@ def refresh_user_data(usernames, PROJ_ROOT, max_date):
                                      "data",
                                      "interim")
     # TODO retain some functionality for pulling all the dataset: force re-pull for the list, and force re-pull all
+    usernames = [x.lower() for x in usernames]
     usernames_to_update = check_interim_data(usernames,
                                              max_date,
                                              os.path.join(interim_data_path, 'users_df.pkl'),
@@ -77,9 +78,9 @@ def refresh_user_data(usernames, PROJ_ROOT, max_date):
         else:
             print("Updated raw data for:")
             print(updated_usernames)
-        users_df = user_df_setup.user_df_setup(updated_usernames,
-                                           os.path.join(raw_data_path, 'users_df.pkl'),
-                                           os.path.join(interim_data_path, 'users_df.pkl'))
+        users_df = user_df_setup.user_df_setup(os.path.join(raw_data_path, 'users_df.pkl'),
+                                               os.path.join(interim_data_path, 'users_df.pkl'),
+                                               usernames=updated_usernames)
     for username in updated_usernames:
         contacts_df = contacts_df_setup.contacts_df_setup(username, users_df, raw_data_path, interim_data_path)
 

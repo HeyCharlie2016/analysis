@@ -29,7 +29,7 @@ def get_user_ids(users_df, usernames):
 	return user_ids, usernames
 
 
-def make_raw_users_df(db, data_file_path, usernames):
+def make_raw_users_df(db, data_file_path):
 	# Pulling the current username log, we shouldn't need to worry about filesize for this one but can change later
 	users_df = pd.DataFrame(list(db.users.find()))
 	# users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
@@ -46,6 +46,15 @@ def update_raw_users_df(db, data_file_path, usernames):
 	raw_users_df.to_pickle(data_file_path)
 	return raw_users_df
 
+
+def raw_users_updater(db, usernames, raw_data_path):
+	try:
+		# Check for if the file exists
+		raw_users_df = update_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
+	except:
+		print('Creating new users_df')
+		raw_users_df = make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'))
+	return raw_users_df
 
 def make_raw_contacts_df(db, raw_data_path, user_ids):
 	try:
@@ -101,29 +110,22 @@ def make_raw_location_log_df(db, raw_data_path, user_ids):
 
 def pull_raw_data(usernames, raw_data_path):
 	db = mongo_connect()
+	raw_users_df = raw_users_updater(db, usernames, raw_data_path)
+	[user_ids, updated_usernames] = get_user_ids(raw_users_df, usernames)  # Checks if each exists, and returns a list of those who do
 	try:
-		# Check for if the file exists
-		raw_users_df = update_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
-	except:
-		print('Creating new users_df')
-		raw_users_df = make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
-	# print(users_df.head(10))
-	[user_ids, usernames] = get_user_ids(raw_users_df, usernames)  # Maybe overly complex? Checks if each exists.
-	# print(user_ids)
-	# print(usernames)
-	try:
-		assert len(user_ids) == len(usernames)
+		assert len(user_ids) == len(updated_usernames)
 	except AssertionError:
 		print('User_ID Issue')
-
+	# Pulls all the other data for the desired usernames
 	if len(user_ids) > 0:
 		make_raw_contacts_df(db, raw_data_path, user_ids)
 		make_raw_comm_log_df(db, raw_data_path, user_ids)
 		make_raw_location_df(db, raw_data_path, user_ids)
 		make_raw_location_log_df(db, raw_data_path, user_ids)
 		print('Updated raw data for users:')
-		print(usernames)
-	return usernames
+		print(updated_usernames)
+
+	return updated_usernames
 
 
 def make_raw_notifications_df(users_df, usernames, raw_data_path):

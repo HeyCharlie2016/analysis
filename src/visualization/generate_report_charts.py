@@ -77,7 +77,7 @@ def comm_vol_bar_chart(usernames, date_indices, comm_vol_bar_chart_data, report_
 			data = comm_vol_bar_chart_data[cols]
 			print('Jupyter Notebook')
 
-		date_range = list(set(date_indices) & set(data.index))
+		date_range = sorted(list(set(date_indices) & set(data.index)))
 		date_strings = dates_to_strings(date_range)
 		rolling_total = pd.DataFrame(0, data[:-1].index, columns=['temp'])
 
@@ -207,7 +207,7 @@ def loc_days_bar_chart(usernames, date_indices, loc_days_bar_chart_data, report_
 		else:
 			data = loc_days_bar_chart_data
 
-		date_range = list(set(date_indices) & set(data.index))
+		date_range = sorted(list(set(date_indices) & set(data.index)))
 		date_strings = dates_to_strings(date_range)
 
 		ax.bar(date_strings, data[col], 0.7, color=color, label=label)
