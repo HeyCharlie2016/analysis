@@ -14,7 +14,8 @@ def dates_to_strings(date_indices):
 	return date_strings
 
 
-def comm_days_line_chart(usernames, date_indices, comm_days_line_chart_data, report_chart_path):
+def comm_days_line_chart(usernames, date_indices, comm_days_line_chart_data, report_chart_path, **kwargs):
+	show = kwargs.get('show', False)
 	for count, username in enumerate(usernames):
 		fig = plt.figure()
 		ax = fig.add_subplot(111)
@@ -54,9 +55,14 @@ def comm_days_line_chart(usernames, date_indices, comm_days_line_chart_data, rep
 		filename = 'days_w_comm_chart' + '-' + username + '.png'
 		filepath = os.path.join(report_chart_path, filename)
 		fig.savefig(filepath, bbox_inches="tight")
+		# plt.clf()
+		if show:
+			plt.show()
+		plt.close(fig)
 
 
-def comm_vol_bar_chart(usernames, date_indices, comm_vol_bar_chart_data, report_chart_path):
+def comm_vol_bar_chart(usernames, date_indices, comm_vol_bar_chart_data, report_chart_path, **kwargs):
+	show = kwargs.get('show', False)
 	chart_colors = {'risky': '#e65c00',
 					'neutral': '#b3b3ff',
 					'unrated': '#C0C0C0',
@@ -75,7 +81,6 @@ def comm_vol_bar_chart(usernames, date_indices, comm_vol_bar_chart_data, report_
 			data = comm_vol_bar_chart_data.xs(username)[min(date_indices):max(date_indices)]
 		else:
 			data = comm_vol_bar_chart_data[cols]
-			print('Jupyter Notebook')
 
 		date_range = sorted(list(set(date_indices) & set(data.index)))
 		date_strings = dates_to_strings(date_range)
@@ -114,9 +119,14 @@ def comm_vol_bar_chart(usernames, date_indices, comm_vol_bar_chart_data, report_
 		filename = 'weekly_comm_chart' + '-' + username + '.png'
 		filepath = os.path.join(report_chart_path, filename)
 		fig.savefig(filepath, bbox_inches="tight")
+		# plt.clf()
+		if show:
+			plt.show()
+		plt.close(fig)
 
 
-def comm_pie_chart(usernames, date_index, comm_pie_chart_data, report_chart_path):
+def comm_pie_chart(usernames, date_index, comm_pie_chart_data, report_chart_path, **kwargs):
+	show = kwargs.get('show', False)
 	for count, username in enumerate(usernames):
 		fig = plt.figure()
 		ax = fig.add_subplot(111)
@@ -134,7 +144,8 @@ def comm_pie_chart(usernames, date_index, comm_pie_chart_data, report_chart_path
 		colors = []
 		for k in labels:
 			colors.append(chart_colors[k.lower()])
-		if len(comm_pie_chart_data.index) > 1:
+		# if len(comm_pie_chart_data.index) > 1:
+		if username in comm_pie_chart_data.index:
 			data = comm_pie_chart_data.loc[username]
 		else:
 			data = comm_pie_chart_data
@@ -186,9 +197,14 @@ def comm_pie_chart(usernames, date_index, comm_pie_chart_data, report_chart_path
 		filename = 'comm_pie_chart' + '-' + username + '.png'
 		filepath = os.path.join(report_chart_path, filename)
 		fig.savefig(filepath, bbox_inches="tight")
+		# plt.clf()
+		if show:
+			plt.show()
+		plt.close(fig)
 
 
-def loc_days_bar_chart(usernames, date_indices, loc_days_bar_chart_data, report_chart_path):
+def loc_days_bar_chart(usernames, date_indices, loc_days_bar_chart_data, report_chart_path, **kwargs):
+	show = kwargs.get('show', False)
 	chart_colors = {'risky': '#e65c00',
 					'neutral': '#b3b3ff',
 					'unrated': '#C0C0C0',
@@ -221,7 +237,8 @@ def loc_days_bar_chart(usernames, date_indices, loc_days_bar_chart_data, report_
 		plt.xlabel('Week of:', fontsize=14)
 		plt.ylabel(label, fontsize=14)
 		if sum(data[col]) == 0:
-			ax.annotate("No Risky Location Visits", xy=(date_strings[1], top / 2), fontsize=14, va='center', ha='left')
+			# print(date_strings)
+			ax.annotate("No Risky Location Visits", xy=(date_strings[0], top / 2), fontsize=14, va='center', ha='left')
 
 		plt.xticks(date_strings, fontsize=14, rotation='30')
 		ax.spines['right'].set_visible(False)
@@ -233,3 +250,7 @@ def loc_days_bar_chart(usernames, date_indices, loc_days_bar_chart_data, report_
 		filename = 'days_w_risky_loc_chart' + '-' + username + '.png'
 		filepath = os.path.join(report_chart_path, filename)
 		fig.savefig(filepath, bbox_inches="tight")
+		# plt.clf()
+		if show:
+			plt.show()
+		plt.close(fig)

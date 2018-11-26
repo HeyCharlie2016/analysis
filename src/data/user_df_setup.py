@@ -24,7 +24,7 @@ def generate_risk_thresholds(col):
 	return d[col]
 
 
-def user_df_setup(raw_data_file_path, interim_data_file_path, *args, ** kwargs):
+def user_df_setup(raw_data_file_path, interim_data_file_path, *args, **kwargs):
 	usernames = kwargs.get('usernames', None)
 	raw_users_df = pd.read_pickle(raw_data_file_path)
 	if usernames is None:

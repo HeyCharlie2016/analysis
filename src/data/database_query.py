@@ -39,22 +39,31 @@ def make_raw_users_df(db, data_file_path):
 
 
 def update_raw_users_df(db, data_file_path, usernames):
-	raw_users_df = pd.read_pickle(data_file_path)
-	current_users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
-	current_users_df['_id'] = current_users_df['_id'].astype('|S')
-	raw_users_df = raw_users_df.combine_first(current_users_df)  # The union of the two, without duplicates
+	existing_raw_users_df = pd.read_pickle(data_file_path)
+
+	# current_users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
+	users_df = pd.DataFrame(list(db.users.find()))
+	users_df['_id'] = users_df['_id'].astype('|S')
+	current_users_df = users_df[users_df['usernames'] in usernames]
+	raw_users_df = existing_raw_users_df.combine_first(current_users_df)  # The union of the two, without duplicates
 	raw_users_df.to_pickle(data_file_path)
 	return raw_users_df
 
 
 def raw_users_updater(db, usernames, raw_data_path):
-	try:
-		# Check for if the file exists
-		raw_users_df = update_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
-	except:
-		print('Creating new users_df')
+	raw_data_file_path = os.path.join(raw_data_path, 'users_df.pkl')
+	if os.path.isfile(raw_data_file_path):
 		raw_users_df = make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'))
+	else:
+		raw_users_df = update_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
+	# try:
+	# 	# Check for if the file exists
+	# 	raw_users_df = update_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
+	# except:
+	# 	print('Creating new users_df')
+	# 	raw_users_df = make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'))
 	return raw_users_df
+
 
 def make_raw_contacts_df(db, raw_data_path, user_ids):
 	try:
