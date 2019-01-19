@@ -44,7 +44,7 @@ def update_raw_users_df(db, data_file_path, usernames):
 	# current_users_df = pd.DataFrame(list(db.users.find({'username': {'$in': usernames}})))
 	users_df = pd.DataFrame(list(db.users.find()))
 	users_df['_id'] = users_df['_id'].astype('|S')
-	current_users_df = users_df[users_df['usernames'] in usernames]
+	current_users_df = users_df[users_df['username'].isin(usernames)]
 	raw_users_df = existing_raw_users_df.combine_first(current_users_df)  # The union of the two, without duplicates
 	raw_users_df.to_pickle(data_file_path)
 	return raw_users_df
@@ -53,9 +53,9 @@ def update_raw_users_df(db, data_file_path, usernames):
 def raw_users_updater(db, usernames, raw_data_path):
 	raw_data_file_path = os.path.join(raw_data_path, 'users_df.pkl')
 	if os.path.isfile(raw_data_file_path):
-		raw_users_df = make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'))
-	else:
 		raw_users_df = update_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
+	else:
+		raw_users_df = make_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'))
 	# try:
 	# 	# Check for if the file exists
 	# 	raw_users_df = update_raw_users_df(db, os.path.join(raw_data_path, 'users_df.pkl'), usernames)
