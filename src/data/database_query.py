@@ -73,7 +73,7 @@ def make_raw_contacts_df(db, raw_data_path, user_ids):
 
 	contacts_df = pd.DataFrame(list(db.socialContact.find({'userId': {'$in': user_ids}})))
 	contacts_df['_id'] = contacts_df['_id'].astype('|S')
-	contacts_df.index = contacts_df['_id']
+	contacts_df.set_index('_id')
 
 	for e in user_ids:
 		user_contacts_df = contacts_df[contacts_df['userId'] == e]
@@ -83,11 +83,13 @@ def make_raw_contacts_df(db, raw_data_path, user_ids):
 
 def make_raw_comm_log_df(db, raw_data_path, user_ids):
 	comm_log_df = pd.DataFrame(list(db.contactLog.find({'userId': {'$in': user_ids}})))
-	comm_log_df.index = pd.to_datetime(comm_log_df['timestamp'], unit="ms") - dt.timedelta(hours=4)
-	for e in user_ids:
-		user_comm_log_df = comm_log_df[comm_log_df['userId'] == e]
-		data_file_path = os.path.join(raw_data_path, 'comm_log_df_' + e + '.pkl')
-		user_comm_log_df.to_pickle(data_file_path)
+	if len(comm_log_df) > 0:
+		comm_log_df['timestamp'] = pd.to_datetime(comm_log_df['timestamp'], unit="ms") - dt.timedelta(hours=4)
+		comm_log_df.set_index('timestamp')
+		for e in user_ids:
+			user_comm_log_df = comm_log_df[comm_log_df['userId'] == e]
+			data_file_path = os.path.join(raw_data_path, 'comm_log_df_' + e + '.pkl')
+			user_comm_log_df.to_pickle(data_file_path)
 
 
 def make_raw_location_df(db, raw_data_path, user_ids):
@@ -107,7 +109,7 @@ def make_raw_location_df(db, raw_data_path, user_ids):
 def make_raw_location_log_df(db, raw_data_path, user_ids):
 	location_log_df = pd.DataFrame(list(db.locationLog.find({'userId': {'$in': user_ids}})))
 	if len(location_log_df) > 0:
-		location_log_df.index = location_log_df['_id']
+		location_log_df.set_index('_id')
 	else:
 		cols = ['userId', 'locationId', 'timestamp', 'type']
 		location_log_df = pd.DataFrame('', index=[], columns=cols)
@@ -126,6 +128,7 @@ def pull_raw_data(usernames, raw_data_path):
 	except AssertionError:
 		print('User_ID Issue')
 	# Pulls all the other data for the desired usernames
+	# TODO handle if something's empty
 	if len(user_ids) > 0:
 		make_raw_contacts_df(db, raw_data_path, user_ids)
 		make_raw_comm_log_df(db, raw_data_path, user_ids)
@@ -142,7 +145,7 @@ def make_raw_notifications_df(users_df, usernames, raw_data_path):
 	[user_ids, usernames] = get_user_ids(raw_users_df, usernames)
 	db = mongo_connect()
 	notifications_df = pd.DataFrame(list(db.notificationLog.find({'userId': {'$in': user_ids}})))
-	notifications_df.index = notifications_df['_id']
+	notifications_df.set_index('_id')
 	for e in user_ids:
 		user_notifications_df = notifications_df[notifications_df['userId'] == e]
 		data_file_path = os.path.join(raw_data_path, 'notifications_df_' + e + '.pkl')
