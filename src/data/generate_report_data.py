@@ -79,7 +79,7 @@ def generate_report_variables(username, report_variables, comm_df, location_log_
 
 	report_variables[username] = {"title": "HeyCharlie User Report: " + username + " " + today.strftime('%b %d %Y'),
 								"user_name": username,
-								"clinic_ID": 'Genesis Counseling Services',
+								"clinic_ID": 'S:US',
 								"report_date": today.strftime('%b %d %Y'),
 								"report_week": date_indices[-2].strftime('%b %d'),
 								"change_in_risky_comm": change_in_risky_comm,

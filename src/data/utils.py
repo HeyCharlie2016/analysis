@@ -21,9 +21,13 @@ def add_weekly_highest_day(daily_df, weekly_df, labels):
 			else:
 				week_temp = temp[j:j + dt.timedelta(7)]
 				max_dates = week_temp[week_temp['max_' + i]].index
-				days = []
+				day_index = []
 				for k in max_dates:
-					days.append(weekday_dict[k.weekday()])
+					day_index.append(k.weekday())
+				day_index.sort()
+				days = []
+				for e in day_index:
+					days.append(weekday_dict[e])
 				if len(days) < 4:
 					activity_df.loc[j] = ', '.join(days)
 				else:

@@ -24,7 +24,8 @@ def get_user_ids(users_df, usernames):
 			user_ids.append(users_df[users_df['username'] == e]['_id'].values[0].decode())
 		else:
 			missing_usernames.append(e)
-	print('Username not found: ' + str(missing_usernames))
+	if missing_usernames:
+		print('Username not found: ' + str(missing_usernames))
 	usernames = list(set(usernames) - set(missing_usernames))
 	return user_ids, usernames
 
@@ -86,10 +87,13 @@ def make_raw_comm_log_df(db, raw_data_path, user_ids):
 	if len(comm_log_df) > 0:
 		comm_log_df['timestamp'] = pd.to_datetime(comm_log_df['timestamp'], unit="ms") - dt.timedelta(hours=4)
 		comm_log_df.set_index('timestamp')
-		for e in user_ids:
-			user_comm_log_df = comm_log_df[comm_log_df['userId'] == e]
-			data_file_path = os.path.join(raw_data_path, 'comm_log_df_' + e + '.pkl')
-			user_comm_log_df.to_pickle(data_file_path)
+	else:
+		cols = ['userId', 'contactId', 'timestamp', 'direction']
+		comm_log_df = pd.DataFrame('', index=[], columns=cols)
+	for e in user_ids:
+		user_comm_log_df = comm_log_df[comm_log_df['userId'] == e]
+		data_file_path = os.path.join(raw_data_path, 'comm_log_df_' + e + '.pkl')
+		user_comm_log_df.to_pickle(data_file_path)
 
 
 def make_raw_location_df(db, raw_data_path, user_ids):

@@ -166,12 +166,12 @@ def comm_pie_chart(usernames, date_index, comm_pie_chart_data, report_chart_path
 						kw["arrowprops"].update({"connectionstyle": connectionstyle})
 
 						text = labels[i] + '\n' + '{:.0%}'.format(data[i])
-						text_x = x + (1 - x) * 2 / 3 * np.sign(
-							x)  # setting the x coordinate of the text-box to be halfway between the cahrt and x = 1 (or -1)
+						text_x = x + (1 - x) * 2 / 3 * np.sign(x)
+						# setting the x coordinate of the text-box to be halfway between the cahrt and x = 1 (or -1)
 						if abs(text_x) > 1:
 							text_x = np.sign(x)
-						ax.annotate(text, xy=(x, y), xytext=(text_x, 1.2 * y),
-									horizontalalignment=horizontalalignment, **kw, fontsize=14)
+						ax.annotate(text, xy=(x, y), xytext=(text_x, 1.2 * y),  #
+									horizontalalignment=horizontalalignment, fontsize=14)  # **kw causes an error for 100%
 					else:
 						text = labels[i] + ': ' + '{:.0%}'.format(data[i])
 						ax.annotate(text, xy=(1.5, 0.2 * low_count - 1), fontsize=14, ha='center')
@@ -197,6 +197,7 @@ def comm_pie_chart(usernames, date_index, comm_pie_chart_data, report_chart_path
 		filename = 'comm_pie_chart' + '-' + username + '.png'
 		filepath = os.path.join(report_chart_path, filename)
 		fig.savefig(filepath, bbox_inches="tight")
+		# fig.savefig(filepath)
 		# plt.clf()
 		if show:
 			plt.show()

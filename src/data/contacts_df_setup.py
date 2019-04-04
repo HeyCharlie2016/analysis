@@ -7,7 +7,7 @@ def contacts_df_setup(username, users_df, raw_data_path, interim_data_path):
 	raw_data_file_path = os.path.join(raw_data_path, 'contacts_df_' + user_id + '.pkl')
 	raw_contacts_df = pd.read_pickle(raw_data_file_path)
 
-	contacts = raw_contacts_df[raw_contacts_df["userId"] == user_id][['_id', 'score']]
+	contacts = raw_contacts_df[raw_contacts_df["userId"] == user_id][['_id', 'score', 'relationship']]
 	contacts.index = contacts['_id'].str.decode("utf-8")
 	contacts.drop(columns='_id')
 

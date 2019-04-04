@@ -36,8 +36,8 @@ def check_interim_data(usernames, max_date, interim_data_file_path, positives):
     except:
         return usernames
 
-    users_needing_updating = list(set(usernames) - set(users_df.index)) # Users that don't exist
-    users_with_data = list(set(usernames) & set(users_df.index)) # Users that do exist (inverse of previous line)
+    users_needing_updating = list(set(usernames) - set(users_df.index))  # Users that don't exist
+    users_with_data = list(set(usernames) & set(users_df.index))  # Users that do exist (inverse of previous line)
 
     for e in users_with_data:
         if pd.isnull(users_df['refresh_time'][e]):

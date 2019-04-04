@@ -2,6 +2,7 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 import os
+from data import utils
 
 # # It doesn't want to import utils...
 # from data.utils import add_weekly_highest_day
@@ -16,7 +17,6 @@ PROJ_ROOT = os.path.join(__file__,
 						 os.pardir)
 src_dir = os.path.join(PROJ_ROOT, "src")
 sys.path.append(src_dir)
-from data import utils
 
 
 def remove_duplicate_entries(user_loc_activity):

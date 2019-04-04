@@ -20,15 +20,11 @@ from data import utils
 
 def comm_activity_columns():
     activity_columns = []
-    for i in ['sms_sent', 'sms_received', 'phone_inbound', 'phone_outbound']:
-        for j in ['risky', 'neutral', 'supportive', 'unrated']:
-            if i == 'locations':
-                if j == 'neutral' or j == 'unrated':
-                    pass
-                else:
-                    activity_columns.append(i + '_' + j)
-            else:
-                activity_columns.append(i + '_' + j)
+    for j in ['risky', 'neutral', 'supportive', 'unrated']:
+        for i in ['sms_sent', 'sms_received', 'phone_inbound', 'phone_outbound']:
+            activity_columns.append(i + '_' + j)
+    #     activity_columns.append(j + '_comm')
+    # activity_columns.append('total_comm')
     return activity_columns
 
 
@@ -38,12 +34,14 @@ def create_interim_comm_data(username, users_df, contacts_df, raw_data_path, int
     raw_comm_df = pd.read_pickle(raw_data_file_path)
     user_activity = raw_comm_df[raw_comm_df['userId'] == user_id]
 
-    risk_scores = pd.Series(np.empty(len(user_activity.index)), index=user_activity.index)
+    # risk_scores = pd.Series(np.empty(len(user_activity.index)), index=user_activity.index)
+    risk_scores = pd.DataFrame(np.nan, index=user_activity.index, columns=['risk_score', 'relationship'])
     for index, row in user_activity.iterrows():
         contact_id = row['contactId']
-        risk_scores[index] = contacts_df.loc[contact_id]['score']
-    user_activity = user_activity.assign(risk_score=risk_scores.values)
-    comm_df = user_activity[['contactId', 'direction', 'timestamp', 'risk_score']]
+        risk_scores.loc[index, 'risk_score'] = contacts_df.loc[contact_id]['score']
+        risk_scores.loc[index, 'relationship'] = contacts_df.loc[contact_id]['relationship']
+    user_activity = user_activity.assign(risk_score=risk_scores['risk_score'], relationship=risk_scores['relationship'])
+    comm_df = user_activity[['contactId', 'direction', 'timestamp', 'risk_score', 'relationship']]
     comm_df.index = pd.to_datetime(comm_df['timestamp'], unit="ms") - dt.timedelta(hours=4)
 
     # print('comm df')
@@ -81,6 +79,7 @@ def add_percent_change_in_risky_interactions(weekly_comm_df):
     prev_risky_comm = weekly_comm_df['risky_comm'].shift(1)
     change_in_risky_comm = (current_risky_comm - prev_risky_comm) / prev_risky_comm
     weekly_comm_df['change_in_risky_comm'] = change_in_risky_comm
+    weekly_comm_df.loc[~np.isfinite(weekly_comm_df['change_in_risky_comm']), 'change_in_risky_comm'] = 1
     return weekly_comm_df
 
 
@@ -129,7 +128,8 @@ def time_bucket_comm(username, users_df, comm_df, interim_data_path, period):
     # TODO: Assertion or something since this is user input?
     activity_columns = comm_activity_columns()
     comm_activity_df = pd.DataFrame(np.nan, index=date_indices, columns=activity_columns)
-
+    if len(comm_df) == 0:
+        return comm_activity_df
     thresholds = {}
     for i in ['unrated', 'risky', 'supportive']:
         thresholds[i] = users_df.loc[username, i + '_threshold']
@@ -137,18 +137,22 @@ def time_bucket_comm(username, users_df, comm_df, interim_data_path, period):
     for i in ['sms_sent', 'sms_received', 'phone_inbound', 'phone_outbound']:
         for j in ['risky', 'neutral', 'supportive', 'unrated']:
             if j == 'risky':
-                data = comm_df.loc[(comm_df['risk_score'] <= thresholds['risky'])
-                                   & (comm_df['risk_score'] > thresholds['unrated'])
+                data = comm_df.loc[((comm_df['relationship'] == 'risky')
+                                   | ((comm_df['risk_score'] <= thresholds['risky'])
+                                   & (comm_df['risk_score'] > thresholds['unrated'])))
                                    & (comm_df['direction'] == i)]
             elif j == 'neutral':
-                data = comm_df.loc[(comm_df['risk_score'] < thresholds['supportive'])
+                data = comm_df.loc[(comm_df['relationship'] != 'risky')
+                                   & (comm_df['risk_score'] < thresholds['supportive'])
                                    & (comm_df['risk_score'] > thresholds['risky'])
                                    & (comm_df['direction'] == i)]
             elif j == 'supportive':
-                data = comm_df.loc[(comm_df['risk_score'] >= thresholds['supportive'])
+                data = comm_df.loc[(comm_df['relationship'] != 'risky')
+                                   & (comm_df['risk_score'] >= thresholds['supportive'])
                                    & (comm_df['direction'] == i)]
             elif j == 'unrated':
-                data = comm_df.loc[(comm_df['risk_score'] < thresholds['unrated'])
+                data = comm_df.loc[(comm_df['relationship'] != 'risky')
+                                   & (comm_df['risk_score'] < thresholds['unrated'])
                                    & (comm_df['direction'] == i)]
 
             col_name = i + '_' + j
@@ -159,7 +163,7 @@ def time_bucket_comm(username, users_df, comm_df, interim_data_path, period):
                 temp.index = temp['index'].apply(lambda x: x.left)
                 comm_activity_df[col_name] = temp[col_name]
     comm_activity_df = comm_activity_df.fillna(0)
-    comm_activity_df['total_comm'] = comm_activity_df.sum(axis=1) # Needs to immediately follow
+    comm_activity_df['total_comm'] = comm_activity_df.sum(axis=1)  # Needs to immediately follow
 
     comm_activity_df = add_volume_by_type(comm_activity_df)
 

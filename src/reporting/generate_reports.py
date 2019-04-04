@@ -4,7 +4,6 @@ import pandas as pd
 import csv
 
 import sys
-# add the 'src' directory as one where we can import modules
 PROJ_ROOT = os.path.join(__file__,
 						 os.pardir,
 						 os.pardir,
