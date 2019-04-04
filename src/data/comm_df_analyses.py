@@ -180,6 +180,8 @@ def comm_df_setup(username, users_df, contacts_df, raw_data_path,
                                                      interim_data_path)
     daily_comm_df = time_bucket_comm(username, users_df, comm_df, interim_data_path, 'day')
     weekly_comm_df = time_bucket_comm(username, users_df, comm_df, interim_data_path, 'week')
+    if len(comm_df) == 0:
+        return
 
     # These functions don't write to files
     weekly_comm_df = utils.add_weekly_highest_day(daily_comm_df, weekly_comm_df, ['risky_comm', 'total_comm'])

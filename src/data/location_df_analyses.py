@@ -158,7 +158,7 @@ def create_interim_loc_data(username, users_df, user_locations_df, raw_data_path
 		risk_types = pd.DataFrame(np.nan, index=user_loc_activity.index, columns=['type'])
 		for i in user_loc_activity.index:
 			location_id = user_loc_activity['locationId'][i]
-			risk_types['type'] = user_locations_df.loc[location_id]['type']
+			risk_types.loc[i, 'type'] = user_locations_df.loc[location_id, 'type']
 			user_loc_activity['risk_type'] = risk_types
 
 	location_visits_df = pull_location_visits(username, user_loc_activity)

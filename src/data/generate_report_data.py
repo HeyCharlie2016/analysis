@@ -10,6 +10,9 @@ def comm_pie_chart(comm_df, comm_pie_chart_data, username, date):
 	# change to a multi-index to match the other data tables?
 	cols = comm_pie_chart_data.columns
 	# user_xs = comm_pie_chart_data.xs(username)
+	if isinstance(comm_df, float):
+		print("no pie chart data")
+		return comm_pie_chart_data.fillna(0)
 	if date in comm_df.index:
 		# comm_pie_chart_data.loc[(username, date), cols] = comm_df.loc[date, cols]
 		data = comm_df.loc[date, cols]
@@ -28,6 +31,9 @@ def multi_index_chart_data(source_data_df, chart_data_df, username):
 
 	# TODO: source_data_df gets a [nan] entry randomly inserted when accessed by this function
 	# the following line helps but it is still a listr
+	if isinstance(source_data_df, float):
+	# if np.isnan(source_data_df):
+		return chart_data_df.fillna(0)
 	source_data_df = source_data_df.fillna(0)
 	# for e, i in enumerate(source_data_df):
 	# 	try:
@@ -52,21 +58,34 @@ def generate_report_variables(username, report_variables, comm_df, location_log_
 	report_week = date_indices[-2].date()
 	today = dt.date.today()
 
-	avg_weekly_total_comm = comm_df['total_comm'][min(date_indices).date():report_week].mean()
-	avg_weekly_risky_comm = comm_df['risky_comm'][min(date_indices).date():report_week].mean()
-
-	if report_week in comm_df.index:
+	# avg_weekly_total_comm = comm_df['total_comm'][min(date_indices).date():report_week].mean()
+	# avg_weekly_risky_comm = comm_df['risky_comm'][min(date_indices).date():report_week].mean()
+	if isinstance(comm_df, float):
+		avg_weekly_total_comm = np.nan
+		avg_weekly_risky_comm = np.nan
+		day_with_max_total_comm = np.nan
+		day_with_max_risky_comm = np.nan
+		change_in_risky_comm = np.nan
+		change_in_risky_comm_days = np.nan
+	elif report_week in comm_df.index:
+		avg_weekly_total_comm = comm_df['total_comm'][min(date_indices).date():report_week].mean()
+		avg_weekly_risky_comm = comm_df['risky_comm'][min(date_indices).date():report_week].mean()
 		day_with_max_total_comm = comm_df.loc[report_week, 'high_total_comm_day']
 		day_with_max_risky_comm = comm_df.loc[report_week, 'high_risky_comm_day']
 		change_in_risky_comm = comm_df['change_in_risky_comm'][report_week]
 		change_in_risky_comm_days = comm_df['change_in_risky_comm_days'][report_week]
 	else:
+		avg_weekly_total_comm = np.nan
+		avg_weekly_risky_comm = np.nan
 		day_with_max_total_comm = np.nan
 		day_with_max_risky_comm = np.nan
 		change_in_risky_comm = np.nan
 		change_in_risky_comm_days = np.nan
 
-	if report_week in location_log_df.index:
+	if isinstance(location_log_df, float):
+		day_with_max_risky_loc = np.nan
+		change_in_risky_loc_days = np.nan
+	elif report_week in location_log_df.index:
 		day_with_max_risky_loc = location_log_df['high_risky_loc_visits_day'][report_week]
 		change_in_risky_comm = '{:.0%}'.format(change_in_risky_comm)
 		change_in_risky_loc_days = location_log_df['change_in_days_w_risky_loc_visits'][report_week]
@@ -121,12 +140,16 @@ def generate_report_data(usernames, date_indices, PROJ_ROOT):
 
 	# Cycle through each user, populating the chart data dataframes
 	for username in usernames:
+		weekly_comm_df, weekly_loc_log_df, locations_df = np.nan, np.nan, np.nan
 		interim_comm_data_file_path = os.path.join(interim_data_path, 'week_comm_log_df_' + username + '.pkl')
-		weekly_comm_df = pd.read_pickle(interim_comm_data_file_path)
+		if os.path.isfile(interim_comm_data_file_path):
+			weekly_comm_df = pd.read_pickle(interim_comm_data_file_path)
 		interim_loc_data_file_path = os.path.join(interim_data_path, 'week_loc_log_df_' + username + '.pkl')
-		weekly_loc_log_df = pd.read_pickle(interim_loc_data_file_path)
+		if os.path.isfile(interim_loc_data_file_path):
+			weekly_loc_log_df = pd.read_pickle(interim_loc_data_file_path)
 		locations_data_file_path = os.path.join(interim_data_path, 'locations_df_' + username + '.pkl')
-		locations_df = pd.read_pickle(locations_data_file_path)
+		if os.path.isfile(locations_data_file_path):
+			locations_df = pd.read_pickle(locations_data_file_path)
 
 		comm_pie_chart_data = comm_pie_chart(weekly_comm_df, comm_pie_chart_data, username, report_date - dt.timedelta(7))
 		comm_days_line_chart_data = multi_index_chart_data(weekly_comm_df, comm_days_line_chart_data, username)
