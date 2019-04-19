@@ -83,7 +83,6 @@ def refresh_user_data(usernames, PROJ_ROOT, max_date):
                                                usernames=updated_usernames)
     for username in updated_usernames:
         contacts_df = contacts_df_setup.contacts_df_setup(username, users_df, raw_data_path, interim_data_path)
-
         comm_df_analyses.comm_df_setup(username, users_df, contacts_df, raw_data_path,
                                                          interim_data_path)
         locations_df = locations_df_setup.locations_df_setup(username, users_df, raw_data_path, interim_data_path)

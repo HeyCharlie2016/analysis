@@ -44,9 +44,6 @@ def create_interim_comm_data(username, users_df, contacts_df, raw_data_path, int
     comm_df = user_activity[['contactId', 'direction', 'timestamp', 'risk_score', 'relationship']]
     comm_df.index = pd.to_datetime(comm_df['timestamp'], unit="ms") - dt.timedelta(hours=4)
 
-    # print('comm df')
-    # print(min(comm_df.index))
-
     interim_data_file_path = os.path.join(interim_data_path, 'comm_log_df_' + username + '.pkl')
     comm_df.to_pickle(interim_data_file_path)
     return comm_df
@@ -167,17 +164,107 @@ def time_bucket_comm(username, users_df, comm_df, interim_data_path, period):
 
     comm_activity_df = add_volume_by_type(comm_activity_df)
 
-    # print(comm_activity_df.head())
     # TODO: reduce how often the datafile is being over written
     interim_data_file_path = os.path.join(interim_data_path, period + '_comm_log_df_' + username + '.pkl')
     comm_activity_df.to_pickle(interim_data_file_path)
     return comm_activity_df
 
 
-def comm_df_setup(username, users_df, contacts_df, raw_data_path,
-                                                         interim_data_path):
-    comm_df = create_interim_comm_data(username, users_df, contacts_df, raw_data_path,
-                                                     interim_data_path)
+def contact_time_bucket_comm(username, users_df, contacts_df, comm_df, interim_data_path, period):
+    today = dt.date.today()
+    date_created = users_df.loc[username, 'date_created']
+    if period == 'day':
+        date_indices = pd.date_range(date_created, today + dt.timedelta(7), freq='D')
+    elif period == 'week':
+        date_indices = pd.date_range(date_created - dt.timedelta(date_created.weekday()),
+                                     today + dt.timedelta(7),
+                                     freq='W-MON')
+    # activity_columns = comm_activity_columns()
+    comm_activity_df = pd.DataFrame(np.nan, index=date_indices, columns=contacts_df.index)
+    if len(comm_df) == 0:
+        return comm_activity_df
+
+    #     will want inbound, outbound
+    for i in contacts_df.index:
+        data = comm_df.loc[(comm_df['contactId'] == i)
+                             & (comm_df['direction'] != 'phone_finished')]
+        col_name = i
+        temp = data.groupby(pd.cut(data.index, comm_activity_df.index, right=False)).agg({'contactId': pd.Series.count})
+        temp.columns = [col_name]
+        temp = temp.reset_index()
+        temp.index = temp['index'].apply(lambda x: x.left)
+        #             print(temp)
+        comm_activity_df[col_name] = temp[col_name]
+
+        data = comm_df.loc[(comm_df['contactId'] == i)
+                            & ((comm_df['direction'] == 'sms_received')
+                            | (comm_df['direction'] == 'phone_inbound'))]
+        col_name = 'inbound_' + i
+        temp = data.groupby(pd.cut(data.index, comm_activity_df.index, right=False)).agg({'contactId': pd.Series.count})
+        temp.columns = [col_name]
+        temp = temp.reset_index()
+        temp.index = temp['index'].apply(lambda x: x.left)
+        #             print(temp)
+        comm_activity_df[col_name] = temp[col_name]
+
+        col_name = 'outbound_' + i
+        data = comm_df.loc[(comm_df['contactId'] == i)
+                            & ((comm_df['direction'] == 'sms_sent')
+                            | (comm_df['direction'] == 'phone_outbound'))]
+        temp = data.groupby(pd.cut(data.index, comm_activity_df.index, right=False)).agg({'contactId': pd.Series.count})
+        temp.columns = [col_name]
+        temp = temp.reset_index()
+        temp.index = temp['index'].apply(lambda x: x.left)
+        #             print(temp)
+        comm_activity_df[col_name] = temp[col_name]
+
+
+    # thresholds = {}
+    # for i in ['unrated', 'risky', 'supportive']:
+    #     thresholds[i] = users_df.loc[username, i + '_threshold']
+    #
+    # for i in ['sms_sent', 'sms_received', 'phone_inbound', 'phone_outbound']:
+    #     for j in ['risky', 'neutral', 'supportive', 'unrated']:
+    #         if j == 'risky':
+    #             data = comm_df.loc[((comm_df['relationship'] == 'risky')
+    #                                 | ((comm_df['risk_score'] <= thresholds['risky'])
+    #                                    & (comm_df['risk_score'] > thresholds['unrated'])))
+    #                                & (comm_df['direction'] == i)]
+    #         elif j == 'neutral':
+    #             data = comm_df.loc[(comm_df['relationship'] != 'risky')
+    #                                & (comm_df['risk_score'] < thresholds['supportive'])
+    #                                & (comm_df['risk_score'] > thresholds['risky'])
+    #                                & (comm_df['direction'] == i)]
+    #         elif j == 'supportive':
+    #             data = comm_df.loc[(comm_df['relationship'] != 'risky')
+    #                                & (comm_df['risk_score'] >= thresholds['supportive'])
+    #                                & (comm_df['direction'] == i)]
+    #         elif j == 'unrated':
+    #             data = comm_df.loc[(comm_df['relationship'] != 'risky')
+    #                                & (comm_df['risk_score'] < thresholds['unrated'])
+    #                                & (comm_df['direction'] == i)]
+    #
+    #         col_name = i + '_' + j
+    #         if len(data) > 0:  # not sure if this is necessary
+    #             temp = data.groupby(pd.cut(data.index, comm_activity_df.index, right=False)).agg(
+    #                 {'contactId': pd.Series.count})
+    #             temp.columns = [col_name]
+    #             temp = temp.reset_index()
+    #             temp.index = temp['index'].apply(lambda x: x.left)
+    #             comm_activity_df[col_name] = temp[col_name]
+    comm_activity_df = comm_activity_df.fillna(0)
+    comm_activity_df['total_comm'] = comm_activity_df.sum(axis=1)  # Needs to immediately follow
+
+    # comm_activity_df = add_volume_by_type(comm_activity_df)
+
+    # TODO: reduce how often the datafile is being over written
+    interim_data_file_path = os.path.join(interim_data_path, period + '_contact_comm_log_df_' + username + '.pkl')
+    comm_activity_df.to_pickle(interim_data_file_path)
+    return comm_activity_df
+
+
+def comm_df_setup(username, users_df, contacts_df, raw_data_path, interim_data_path):
+    comm_df = create_interim_comm_data(username, users_df, contacts_df, raw_data_path, interim_data_path)
     daily_comm_df = time_bucket_comm(username, users_df, comm_df, interim_data_path, 'day')
     weekly_comm_df = time_bucket_comm(username, users_df, comm_df, interim_data_path, 'week')
     if len(comm_df) == 0:

@@ -9,8 +9,7 @@ def contacts_df_setup(username, users_df, raw_data_path, interim_data_path):
 
 	contacts = raw_contacts_df[raw_contacts_df["userId"] == user_id][['_id', 'score', 'relationship']]
 	contacts.index = contacts['_id'].str.decode("utf-8")
-	contacts.drop(columns='_id')
-
+	contacts = contacts.drop(columns='_id')
 	interim_data_file_path = os.path.join(interim_data_path, 'contacts_df_' + username + '.pkl')
 	contacts.to_pickle(interim_data_file_path)
 	return contacts
