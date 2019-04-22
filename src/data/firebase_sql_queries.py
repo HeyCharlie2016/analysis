@@ -69,3 +69,21 @@ def get_text_events(client, username):
 	""")
 	df = client.query(query).to_dataframe()
 	return df
+
+
+def get_reviver_events(client, username):
+	query = ('''
+	    SELECT
+	      event_timestamp AS timestamp,
+	      event_name AS event
+	    FROM
+	      `analytics_153084895.events_*`,
+	      UNNEST(user_properties) AS user_properties
+	    WHERE 
+	      (event_name = 'reviver_scimitar_already_running'
+	      OR event_name = 'reviver_scimitar_starting')
+	      AND user_properties.value.string_value = "''' + username + '''"
+	    ORDER BY
+	      event_timestamp DESC''')
+	df = client.query(query).to_dataframe()
+	return df
