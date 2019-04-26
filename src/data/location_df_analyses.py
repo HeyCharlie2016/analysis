@@ -150,6 +150,8 @@ def create_interim_loc_data(username, users_df, user_locations_df, raw_data_path
 	user_loc_activity = raw_loc_log_df[raw_loc_log_df['userId'] == user_id]  # risk_scores = pd.Series(np.empty(len(user_activity.index)), index=user_activity.index)
 	user_loc_activity = user_loc_activity[['locationId', 'timestamp']]
 	user_loc_activity.index = pd.to_datetime(user_loc_activity['timestamp'], unit="ms") - dt.timedelta(hours=4)
+	# user_loc_activity.index.name = 'timestamp'
+	# user_loc_activity = user_loc_activity.drop(columns='timestamp')
 
 	user_loc_activity = remove_duplicate_entries(user_loc_activity)
 
