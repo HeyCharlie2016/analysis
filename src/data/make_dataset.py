@@ -116,3 +116,55 @@ def make_notification_data(users_df, usernames, PROJ_ROOT):
         if notifications_df is not False:
             notifications_dict[username] = notifications_df
     return notifications_dict
+
+
+def make_collab_data(usernames):
+
+    PROJ_ROOT = os.path.join(__file__,
+                             os.pardir,
+                             os.pardir,
+                             os.pardir)
+    PROJ_ROOT = os.path.abspath(PROJ_ROOT)
+
+    refresh_user_data(usernames, PROJ_ROOT, dt.date.today())
+
+    interim_data_path = os.path.join(PROJ_ROOT,
+                                    "data",
+                                    "interim")
+    sharable_data_path_raw = os.path.join(PROJ_ROOT,
+                                         "data",
+                                         "sharable",
+                                         "raw")
+    sharable_data_path_interim = os.path.join(PROJ_ROOT,
+                                          "data",
+                                          "sharable",
+                                          "interim")
+
+    users_df = pd.read_pickle(os.path.join(interim_data_path, 'users_df' + '.pkl'))
+
+    for username in usernames:
+        user_id = users_df.loc[username, 'userId']
+        for file in ['loc_log_df', 'locations_df', 'comm_log_df', 'contacts_df']:
+            filepath = os.path.join(interim_data_path, file + '_' + username + '.pkl')
+            if not os.path.isfile(filepath):
+                continue
+
+            dataframe = pd.read_pickle(filepath)
+
+            if file == 'contacts_df':
+                dataframe.rename(index=str, columns={"score": "risk_score", "_id": "contact_id"})
+
+            dataframe.to_pickle(os.path.join(sharable_data_path_raw, file + '_' + user_id + '.pkl'))
+
+    # notifications_df = pd.read_pickle(raw_data_file_path)
+    # notifications_df = raw_notifications_df[raw_notifications_df["userId"].values == user_id][
+    #     ['timestamp', 'type', 'userId']]
+
+    users_df = users_df[users_df.index.isin(usernames)]
+    users_df.index = users_df['userId']
+        # .str.decode("utf-8")
+    # users_df = users_df.drop(columns='userId')
+    users_df = users_df[['date_created']]
+    shared_users_data_file_path = os.path.join(sharable_data_path_raw, 'users_df' + '.pkl')
+    users_df.to_pickle(shared_users_data_file_path)
+    return users_df

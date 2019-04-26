@@ -82,6 +82,24 @@ def make_raw_contacts_df(db, raw_data_path, user_ids):
 		user_contacts_df.to_pickle(data_file_path)
 
 
+def make_raw_questionnaire_df(db, raw_data_path, user_ids):
+	try:
+		assert len(user_ids) > 0
+	except AssertionError:
+		print('Empty user_ids list')
+
+	questionnaire_df = pd.DataFrame(list(db.contactQuestionnaire.find({'userId': {'$in': user_ids}})))
+	if len(questionnaire_df) == 0:
+		return
+	questionnaire_df['_id'] = questionnaire_df['_id'].astype('|S')
+	questionnaire_df.set_index('_id')
+
+	for e in user_ids:
+		user_questionnaires_df = questionnaire_df[questionnaire_df['userId'] == e]
+		data_file_path = os.path.join(raw_data_path, 'questionnaire_df_' + e + '.pkl')
+		user_questionnaires_df.to_pickle(data_file_path)
+
+
 def make_raw_comm_log_df(db, raw_data_path, user_ids):
 	comm_log_df = pd.DataFrame(list(db.contactLog.find({'userId': {'$in': user_ids}})))
 	if len(comm_log_df) > 0:
@@ -138,6 +156,7 @@ def pull_raw_data(usernames, raw_data_path):
 		make_raw_comm_log_df(db, raw_data_path, user_ids)
 		make_raw_location_df(db, raw_data_path, user_ids)
 		make_raw_location_log_df(db, raw_data_path, user_ids)
+		make_raw_questionnaire_df(db, raw_data_path, user_ids)
 		print('Updated raw data for users:')
 		print(updated_usernames)
 
