@@ -88,8 +88,10 @@ def pull_location_visits(username, user_loc_activity):
 			in_location = True
 		if in_location:
 			#             milisecond_difference = shifed_activity_time[i] - activity['timestamp'][i]
-			next_timestamp = shifed_activity['timestamp'][i]
-			if not np.isnan(np.sum(next_timestamp)):
+			future_events = activity[(activity.index > i)
+									 & (activity['locationId'] == activity.loc[i, 'locationId'])]
+			if len(future_events) > 0:
+				next_timestamp = future_events.index[0]
 				next_time = pd.to_datetime(next_timestamp, unit="ms") - dt.timedelta(hours=4)
 				time_difference = next_time - i
 
@@ -97,8 +99,9 @@ def pull_location_visits(username, user_loc_activity):
 			# if there is a next entry
 			# and if the time difference between current and next is relatively small
 			# and if the locationID stays the same
-			if (time_difference > dt.timedelta(minutes=20)) | np.isnan(np.sum(next_timestamp)) | (
-					shifed_activity['locationId'][i] != activity['locationId'][i]):
+			if ((time_difference > dt.timedelta(minutes=20))
+					| (len(future_events) == 0)):
+					# | (shifed_activity['locationId'][i] != activity['locationId'][i])
 				location_visits[start_index]['end_time'] = i
 				in_location = False
 	return pd.DataFrame.from_dict(location_visits, orient='index')
