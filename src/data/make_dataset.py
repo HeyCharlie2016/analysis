@@ -88,6 +88,8 @@ def refresh_user_data(usernames, PROJ_ROOT, max_date):
         locations_df = locations_df_setup.locations_df_setup(username, users_df, raw_data_path, interim_data_path)
         location_df_analyses.location_df_setup(username, users_df, locations_df, raw_data_path,
                                                          interim_data_path)
+        notifications_df = notifications_df_setup.notifications_df_setup(username, users_df, raw_data_path,
+                                                                         interim_data_path)
 
     # Confirm update
     users_df = user_df_setup.mark_refreshed(updated_usernames, users_df, os.path.join(interim_data_path, 'users_df.pkl'))
@@ -135,16 +137,16 @@ def make_collab_data(usernames):
                                          "data",
                                          "sharable",
                                          "raw")
-    sharable_data_path_interim = os.path.join(PROJ_ROOT,
-                                          "data",
-                                          "sharable",
-                                          "interim")
+    # sharable_data_path_interim = os.path.join(PROJ_ROOT,
+    #                                       "data",
+    #                                       "sharable",
+    #                                       "interim")
 
     users_df = pd.read_pickle(os.path.join(interim_data_path, 'users_df' + '.pkl'))
 
     for username in usernames:
         user_id = users_df.loc[username, 'userId']
-        for file in ['loc_log_df', 'locations_df', 'comm_log_df', 'contacts_df']:
+        for file in ['loc_log_df', 'locations_df', 'comm_log_df', 'contacts_df', 'notifications_log_df']:
             filepath = os.path.join(interim_data_path, file + '_' + username + '.pkl')
             if not os.path.isfile(filepath):
                 continue

@@ -141,6 +141,20 @@ def make_raw_location_log_df(db, raw_data_path, user_ids):
 		user_location_log_df.to_pickle(data_file_path)
 
 
+def make_raw_notifications_df(db, raw_data_path, user_ids):
+	notifications_df = pd.DataFrame(list(db.notificationLog.find({'userId': {'$in': user_ids}})))
+	if len(notifications_df) > 0:
+		notifications_df.set_index('_id')
+	else:
+		cols = ['userId', 'objectId', 'objectType', 'timestamp', 'type']
+		notifications_df = pd.DataFrame('', index=[], columns=cols)
+	for e in user_ids:
+		user_notifications_df = notifications_df[notifications_df['userId'] == e]
+		user_notifications_df.index = notifications_df[notifications_df['userId'] == e].index
+		data_file_path = os.path.join(raw_data_path, 'notifications_df_' + e + '.pkl')
+		user_notifications_df.to_pickle(data_file_path)
+
+
 def pull_raw_data(usernames, raw_data_path):
 	db = mongo_connect()
 	raw_users_df = raw_users_updater(db, usernames, raw_data_path)
@@ -157,19 +171,8 @@ def pull_raw_data(usernames, raw_data_path):
 		make_raw_location_df(db, raw_data_path, user_ids)
 		make_raw_location_log_df(db, raw_data_path, user_ids)
 		make_raw_questionnaire_df(db, raw_data_path, user_ids)
+		make_raw_notifications_df(db, raw_data_path, user_ids)
 		print('Updated raw data for users:')
 		print(updated_usernames)
 
 	return updated_usernames
-
-
-def make_raw_notifications_df(users_df, usernames, raw_data_path):
-	raw_users_df = pd.read_pickle(os.path.join(raw_data_path, 'users_df.pkl'))
-	[user_ids, usernames] = get_user_ids(raw_users_df, usernames)
-	db = mongo_connect()
-	notifications_df = pd.DataFrame(list(db.notificationLog.find({'userId': {'$in': user_ids}})))
-	notifications_df.set_index('_id')
-	for e in user_ids:
-		user_notifications_df = notifications_df[notifications_df['userId'] == e]
-		data_file_path = os.path.join(raw_data_path, 'notifications_df_' + e + '.pkl')
-		user_notifications_df.to_pickle(data_file_path)
