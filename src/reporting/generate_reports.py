@@ -4,16 +4,21 @@ import pandas as pd
 import csv
 
 import sys
-PROJ_ROOT = os.path.join(__file__,
-						 os.pardir,
-						 os.pardir,
-						 os.pardir)
+
+import pathlib  # __file__ isn't recognized in Jupyter, so we need this to get the root path
+path = pathlib.Path.cwd()
+PROJ_ROOT = path.parent
+
+# PROJ_ROOT = os.path.join(__file__,
+# 						 os.pardir,
+# 						 os.pardir,
+# 						 os.pardir)
 src_dir = os.path.join(PROJ_ROOT, "src")
 sys.path.append(src_dir)
 import generate_html
 from visualization import generate_report_charts
-from data import make_dataset
-from data import generate_report_data
+from dataset import make_dataset
+from dataset import generate_report_data
 
 
 def generate_date_indices():
